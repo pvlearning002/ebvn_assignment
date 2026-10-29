@@ -9,7 +9,6 @@ import (
 
 func main() {
 	cfg := config.CreateNewConfig()
-	// config.InitConfig()
 	fmt.Println("App Port:", cfg.AppPort)
 	genPassService := service.NewGenPass(*cfg)
 	generatedPass, err := genPassService.GeneratePassword()
