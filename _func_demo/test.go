@@ -11,8 +11,8 @@ func main() {
 	cfg := config.CreateNewConfig()
 	// config.InitConfig()
 	fmt.Println("App Port:", cfg.AppPort)
-	genPassService := service.NewGenPass()
-	generatedPass, err := genPassService.GeneratePassword(cfg.PasswordLengthDefault)
+	genPassService := service.NewGenPass(*cfg)
+	generatedPass, err := genPassService.GeneratePassword()
 	if err != nil {
 		fmt.Println("Error generating password:", err)
 		return

@@ -14,19 +14,21 @@ type GenPass interface {
 
 type genPassHandler struct {
 	genPassSvc service.GenPass
+	cfg        config.Config
 }
 
-func NewGenPass(genPassSvc service.GenPass) GenPass {
+func NewGenPass(genPassSvc service.GenPass, cfg config.Config) GenPass {
 	return &genPassHandler{
 		genPassSvc: genPassSvc,
+		cfg:        cfg,
 	}
 }
 
 func (g *genPassHandler) GeneratePassword(c *gin.Context) {
-	pass, err := g.genPassSvc.GeneratePassword(config.PASSWORD_LENGTH_DEFAULT)
+	pwd, err := g.genPassSvc.GeneratePassword()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		c.JSON(http.StatusInternalServerError, gin.H{g.cfg.ErrorTitle: g.cfg.ErrorInternalServer})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"password": pass})
+	c.JSON(http.StatusOK, gin.H{g.cfg.PasswordTitle: pwd})
 }

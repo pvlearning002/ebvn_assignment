@@ -1,33 +1,35 @@
 package service
 
 import (
-	"fmt"
 	"strings"
+
 	"github.com/google/uuid"
+	"github.com/pvlearning002/ebvn_assignment/internal/config"
 )
 
 type GenPass interface {
-	GeneratePassword(length int) (string, error)
+	GeneratePassword() (string, error)
 }
 
 type genPassService struct {
+	cfg config.Config
 }
 
-func NewGenPass() GenPass {
-	return &genPassService{}
-}
-
-func (g *genPassService) GeneratePassword(length int) (string, error) {
-	if length <= 0 {
-		return "", fmt.Errorf("length must be greater than 0")
+func NewGenPass(cfg config.Config) GenPass {
+	return &genPassService{
+		cfg: cfg,
 	}
-	dash := "-"
-	result := strings.ReplaceAll(uuid.New().String(), dash, "")
+}
+
+func (g *genPassService) GeneratePassword() (string, error) {
+	stringEmpty := ""
+	dash := g.cfg.Dash
+	result := strings.ReplaceAll(uuid.New().String(), dash, stringEmpty)
 	pass_len := len(result)
-	for (pass_len < length) {
-		result += strings.ReplaceAll(uuid.New().String(), dash, "")
+	for pass_len < g.cfg.PasswordLengthDefault {
+		result += strings.ReplaceAll(uuid.New().String(), dash, stringEmpty)
 		pass_len = len(result)
 	}
-	result = result[:length]
+	result = result[:g.cfg.PasswordLengthDefault]
 	return result, nil
 }
