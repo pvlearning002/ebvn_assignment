@@ -26,18 +26,20 @@ func NewEngine(cfg *config.Config) Engine {
 		cfg: cfg,
 	}
 	app.initRoutes()
-
 	return app
 }
 
+// Start starts the HTTP server on the specified port.
 func (self *engine) Start() error {
 	return self.app.Run(":" + strconv.Itoa(self.cfg.AppPort))
 }
 
+// ServeHTTP implements the http.Handler interface, allowing the engine to be used as an HTTP handler.
 func (self *engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	self.app.ServeHTTP(w, r)
 }
 
+// initRoutes initializes the routes for the API engine.
 func (self *engine) initRoutes() {
 	// Initialize gen pass service
 	genPassService := service.NewGenPass(*self.cfg)
