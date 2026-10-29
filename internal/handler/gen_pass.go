@@ -24,11 +24,11 @@ func NewGenPass(genPassSvc service.GenPass, cfg config.Config) GenPass {
 	}
 }
 
-func (g *genPassHandler) GeneratePassword(c *gin.Context) {
-	pwd, err := g.genPassSvc.GeneratePassword()
+func (self *genPassHandler) GeneratePassword(c *gin.Context) {
+	pwd, err := self.genPassSvc.GeneratePassword()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{g.cfg.ErrorTitle: g.cfg.ErrorInternalServer})
+		c.JSON(http.StatusInternalServerError, gin.H{self.cfg.ErrorTitle: self.cfg.ErrorInternalServer})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{g.cfg.PasswordTitle: pwd})
+	c.JSON(http.StatusOK, gin.H{self.cfg.PasswordTitle: pwd})
 }

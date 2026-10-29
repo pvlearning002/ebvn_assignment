@@ -7,13 +7,16 @@ type Config struct {
 	AppName               string `default:"MyApp" envconfig:"APP_NAME"`
 	StatusOK              string `default:"OK" envconfig:"STATUS_OK"`
 	BookmarkService       string `default:"bookmark_service" envconfig:"BOOKMARK_SERVICE"`
-	PathGetGenPass        string `default:"/genpass" envconfig:"PATH_GET_GEN_PASS"`
-	PathGetHealthCheck    string `default:"/health" envconfig:"PATH_GET_HEALTH_CHECK"`
 	PasswordLengthDefault int    `default:"12" envconfig:"PASSWORD_LENGTH_DEFAULT"`
 	Dash                  string `default:"-" envconfig:"DASH"`
 	ErrorInternalServer   string `default:"Internal Server Error" envconfig:"ERROR_INTERNAL_SERVER"`
 	ErrorTitle            string `default:"Error" envconfig:"ERROR_TITLE"`
 	PasswordTitle         string `default:"Password" envconfig:"PASSWORD_TITLE"`
+	StringEmpty           string `default:"" envconfig:"STRING_EMPTY"`
+	StringSpace           string `default:" " envconfig:"STRING_SPACE"`
+
+	PathGetGenPass     string `default:"/genpass" envconfig:"PATH_GET_GEN_PASS"`
+	PathGetHealthCheck string `default:"/health" envconfig:"PATH_GET_HEALTH_CHECK"`
 }
 
 func NewConfig() (*Config, error) {

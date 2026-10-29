@@ -21,15 +21,13 @@ func NewGenPass(cfg config.Config) GenPass {
 	}
 }
 
-func (g *genPassService) GeneratePassword() (string, error) {
-	stringEmpty := ""
-	dash := g.cfg.Dash
-	result := strings.ReplaceAll(uuid.New().String(), dash, stringEmpty)
+func (self *genPassService) GeneratePassword() (string, error) {
+	result := strings.ReplaceAll(uuid.New().String(), self.cfg.Dash, self.cfg.StringEmpty)
 	pass_len := len(result)
-	for pass_len < g.cfg.PasswordLengthDefault {
-		result += strings.ReplaceAll(uuid.New().String(), dash, stringEmpty)
+	for pass_len < self.cfg.PasswordLengthDefault {
+		result += strings.ReplaceAll(uuid.New().String(), self.cfg.Dash, self.cfg.StringEmpty)
 		pass_len = len(result)
 	}
-	result = result[:g.cfg.PasswordLengthDefault]
+	result = result[:self.cfg.PasswordLengthDefault]
 	return result, nil
 }
