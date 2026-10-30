@@ -14,6 +14,7 @@ import (
 
 func TestGenPassHandler_GeneratePassword(t *testing.T) {
 	// Test implementation
+	t.Parallel()
 	cfg := *config.CreateNewConfig()
 	pwd_test := "123456789012"
 	testCases := []struct {
