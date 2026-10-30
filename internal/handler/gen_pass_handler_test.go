@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"errors"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
@@ -46,7 +45,7 @@ func TestGenPassHandler_GeneratePassword(t *testing.T) {
 			},
 			setupMockService: func(ctx context.Context) *mocks.GenPass {
 				mockSvc := mocks.NewGenPass(t)
-				mockSvc.On("GeneratePassword").Return(cfg.StringEmpty, errors.New("service error")).Once()
+				mockSvc.On("GeneratePassword").Return(cfg.StringEmpty, assert.AnError).Once()
 				return mockSvc
 			},
 			expectedStatus:   http.StatusInternalServerError,

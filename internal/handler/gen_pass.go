@@ -30,8 +30,8 @@ func NewGenPass(genPassSvc service.GenPass, cfg config.Config) GenPass {
 // GeneratePassword handles the HTTP request for generating a password.
 func (self *genPassHandler) GeneratePassword(c *gin.Context) {
 	pwd, err := self.genPassSvc.GeneratePassword()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{self.cfg.ErrorTitle: self.cfg.ErrorInternalServer})
+	if err != nil || len(pwd) != self.cfg.PasswordLengthDefault {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{self.cfg.ErrorTitle: self.cfg.ErrorInternalServer})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{self.cfg.PasswordTitle: pwd})
