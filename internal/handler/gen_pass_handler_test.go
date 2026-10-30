@@ -4,7 +4,6 @@ import (
 	"context"
 	http "net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	gin "github.com/gin-gonic/gin"
@@ -16,7 +15,7 @@ import (
 func TestGenPassHandler_GeneratePassword(t *testing.T) {
 	// Test implementation
 	cfg := *config.CreateNewConfig()
-	pwd_test := strings.Repeat(cfg.StringSpace, cfg.PasswordLengthDefault)
+	pwd_test := "123456789012"
 	testCases := []struct {
 		name             string
 		setupRequest     func(ctx *gin.Context)
