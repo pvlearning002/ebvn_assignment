@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"errors"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
@@ -23,20 +24,20 @@ func TestGenPassHandler_GeneratePassword(t *testing.T) {
 		expectedStatus   int
 		expectedResponse string
 	}{
-		// {
-		// 	name: "service success",
-		// 	setupRequest: func(ctx *gin.Context) {
-		// 		// Setup request context if needed
-		// 		ctx.Request = httptest.NewRequest(http.MethodGet, cfg.PathGetGenPass, nil)
-		// 	},
-		// 	setupMockService: func(ctx context.Context) *mocks.GenPass {
-		// 		mockSvc := mocks.NewGenPass(t)
-		// 		mockSvc.On("GeneratePassword").Return(pwd_test, nil).Once()
-		// 		return mockSvc
-		// 	},
-		// 	expectedStatus:   http.StatusOK,
-		// 	expectedResponse: `{"` + cfg.PasswordTitle + `":"` + pwd_test + `"}`,
-		// },
+		{
+			name: "service success",
+			setupRequest: func(ctx *gin.Context) {
+				// Setup request context if needed
+				ctx.Request = httptest.NewRequest(http.MethodGet, cfg.PathGetGenPass, nil)
+			},
+			setupMockService: func(ctx context.Context) *mocks.GenPass {
+				mockSvc := mocks.NewGenPass(t)
+				mockSvc.On("GeneratePassword").Return(pwd_test, nil).Once()
+				return mockSvc
+			},
+			expectedStatus:   http.StatusOK,
+			expectedResponse: `{"` + cfg.PasswordTitle + `":"` + pwd_test + `"}`,
+		},
 		{
 			name: "service failed",
 			setupRequest: func(ctx *gin.Context) {
@@ -45,7 +46,7 @@ func TestGenPassHandler_GeneratePassword(t *testing.T) {
 			},
 			setupMockService: func(ctx context.Context) *mocks.GenPass {
 				mockSvc := mocks.NewGenPass(t)
-				mockSvc.On("GeneratePassword").Return(cfg.StringEmpty, nil).Once()
+				mockSvc.On("GeneratePassword").Return(cfg.StringEmpty, errors.New("service error")).Once()
 				return mockSvc
 			},
 			expectedStatus:   http.StatusInternalServerError,
