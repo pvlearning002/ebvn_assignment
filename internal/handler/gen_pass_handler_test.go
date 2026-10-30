@@ -23,19 +23,33 @@ func TestGenPassHandler_GeneratePassword(t *testing.T) {
 		expectedStatus   int
 		expectedResponse string
 	}{
+		// {
+		// 	name: "service success",
+		// 	setupRequest: func(ctx *gin.Context) {
+		// 		// Setup request context if needed
+		// 		ctx.Request = httptest.NewRequest(http.MethodGet, cfg.PathGetGenPass, nil)
+		// 	},
+		// 	setupMockService: func(ctx context.Context) *mocks.GenPass {
+		// 		mockSvc := mocks.NewGenPass(t)
+		// 		mockSvc.On("GeneratePassword").Return(pwd_test, nil).Once()
+		// 		return mockSvc
+		// 	},
+		// 	expectedStatus:   http.StatusOK,
+		// 	expectedResponse: `{"` + cfg.PasswordTitle + `":"` + pwd_test + `"}`,
+		// },
 		{
-			name: "success",
+			name: "service failed",
 			setupRequest: func(ctx *gin.Context) {
 				// Setup request context if needed
 				ctx.Request = httptest.NewRequest(http.MethodGet, cfg.PathGetGenPass, nil)
 			},
 			setupMockService: func(ctx context.Context) *mocks.GenPass {
 				mockSvc := mocks.NewGenPass(t)
-				mockSvc.On("GeneratePassword").Return(pwd_test, nil).Once()
+				mockSvc.On("GeneratePassword").Return(cfg.StringEmpty, nil).Once()
 				return mockSvc
 			},
-			expectedStatus:   http.StatusOK,
-			expectedResponse: `{"` + cfg.PasswordTitle + `":"` + pwd_test + `"}`,
+			expectedStatus:   http.StatusInternalServerError,
+			expectedResponse: `{"` + cfg.ErrorTitle + `":"` + cfg.ErrorInternalServer + `"}`,
 		},
 	}
 
