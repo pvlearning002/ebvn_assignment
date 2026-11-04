@@ -48,10 +48,10 @@ func (self *engine) initRoutes() {
 	// Register gen pass route
 	self.app.GET(self.cfg.PathGetGenPass, genPassHandler.GeneratePassword)
 
-	// // Initialize health check service
-	// healthCheckService := service.NewHealthCheck()
-	// // Initialize health check handler
-	// healthCheckHandler := handler.NewHealthCheck(healthCheckService)
-	// // Register health check route
-	// e.app.GET(config.PATH_GET_HEALTH_CHECK, healthCheckHandler.GenerateHealthCheck)
+	// Initialize health check service
+	healthCheckService := service.NewHealthCheck(*self.cfg)
+	// Initialize health check handler
+	healthCheckHandler := handler.NewHealthCheck(healthCheckService, *self.cfg)
+	// Register health check route
+	self.app.GET(self.cfg.PathGetHealthCheck, healthCheckHandler.GenerateHealthCheck)
 }
