@@ -55,8 +55,8 @@ func CreateNewConfigStatus() *ConfigStatus {
 }
 
 /* Status API Paths */
-
 type ConfigPaths struct {
+	PathSwagger        string `default:"/swagger/*any" envconfig:"PATH_GET_GEN_PASS_SWAGGER"`
 	PathGetGenPass     string `default:"/genpass" envconfig:"PATH_GET_GEN_PASS"`
 	PathGetHealthCheck string `default:"/health" envconfig:"PATH_GET_HEALTH_CHECK"`
 }
@@ -102,7 +102,6 @@ func CreateNewConfigError() *ConfigError {
 }
 
 /* Health Check Config */
-
 type ConfigHealthCheck struct {
 	BookmarkService string `default:"bookmark_service" envconfig:"BOOKMARK_SERVICE"`
 }

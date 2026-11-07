@@ -5,6 +5,11 @@ import (
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
 )
 
+// @title Bookmark Management API
+// @version 1.0.0
+// @description This is a sample server for managing bookmarks.
+// @BasePath /
+
 func main() {
 	cfg := config.CreateNewConfig()
 	cfgStatus := config.CreateNewConfigStatus()

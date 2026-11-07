@@ -5,9 +5,12 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/pvlearning002/ebvn_assignment/docs"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
 	"github.com/pvlearning002/ebvn_assignment/internal/handler"
 	service "github.com/pvlearning002/ebvn_assignment/internal/service"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type Engine interface {
@@ -16,21 +19,21 @@ type Engine interface {
 }
 
 type engine struct {
-	app       *gin.Engine
-	cfg       *config.Config
-	cfgStatus *config.ConfigStatus
-	cfgError  *config.ConfigError
-	cfgPaths  *config.ConfigPaths
+	app            *gin.Engine
+	cfg            *config.Config
+	cfgStatus      *config.ConfigStatus
+	cfgError       *config.ConfigError
+	cfgPaths       *config.ConfigPaths
 	cfgHealthCheck *config.ConfigHealthCheck
 }
 
 func NewEngine(cfg *config.Config, cfgStatus *config.ConfigStatus, cfgError *config.ConfigError, cfgPaths *config.ConfigPaths, cfgHealthCheck *config.ConfigHealthCheck) Engine {
 	app := &engine{
-		app:       gin.Default(),
-		cfg:       cfg,
-		cfgStatus: cfgStatus,
-		cfgError:  cfgError,
-		cfgPaths:  cfgPaths,
+		app:            gin.Default(),
+		cfg:            cfg,
+		cfgStatus:      cfgStatus,
+		cfgError:       cfgError,
+		cfgPaths:       cfgPaths,
 		cfgHealthCheck: cfgHealthCheck,
 	}
 	app.initRoutes()
@@ -54,6 +57,8 @@ func (self *engine) initRoutes() {
 	// Initialize gen pass handler
 	genPassHandler := handler.NewGenPass(genPassService, *self.cfg, *self.cfgStatus, *self.cfgError)
 	// Register gen pass route
+	// self.app.GET(self.cfgPaths.PathSwagger, ginSwagger.WrapHandler(swaggerFiles.Handler))
+	self.app.GET(self.cfgPaths.PathSwagger, ginSwagger.WrapHandler(swaggerFiles.Handler))
 	self.app.GET(self.cfgPaths.PathGetGenPass, genPassHandler.GeneratePassword)
 
 	// Initialize health check service

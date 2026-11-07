@@ -1,0 +1,28 @@
+basePath: /
+host: localhost:8080
+info:
+  contact: {}
+  description: This is a sample server for managing bookmarks.
+  title: Bookmark Management API
+  version: 1.0.0
+paths:
+  /generate-password:
+    get:
+      description: GeneratePassword handles the HTTP request for generating a password.
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Generate Random Password
+      tags:
+      - Password
+swagger: "2.0"

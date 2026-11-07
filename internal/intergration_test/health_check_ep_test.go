@@ -10,6 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// @Summary Test Health Check Endpoint
+// @Description TestHealthCheckEndPoint tests the health check endpoint
 func TestHealthCheckEndPoint(t *testing.T) {
 	t.Parallel()
 	cfg := *config.CreateNewConfig()
