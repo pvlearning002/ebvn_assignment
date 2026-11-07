@@ -28,6 +28,10 @@ func TestHealthCheckHandler(t *testing.T) {
 	// Implement your test logic here
 	t.Parallel()
 	cfg := *config.CreateNewConfig()
+	cfgStatus := *config.CreateNewConfigStatus()
+	cfgError := *config.CreateNewConfigError()
+	cfgPaths := *config.CreateNewConfigPaths()
+	cfgHealthCheck := *config.CreateNewConfigHealthCheck()
 	instanceID := uuid.New()
 	testCases := []struct {
 		name             string
@@ -40,12 +44,12 @@ func TestHealthCheckHandler(t *testing.T) {
 			name: "normal case",
 			setupRequest: func(c *gin.Context) {
 				// Setup your request here
-				c.Request = httptest.NewRequest(http.MethodGet, cfg.PathGetHealthCheck, nil)
+				c.Request = httptest.NewRequest(http.MethodGet, cfgPaths.PathGetHealthCheck, nil)
 			},
 			setupMockService: func(ctx context.Context) *services_mocks.HealthCheck {
 				mockService := &services_mocks.HealthCheck{}
 				// Setup your mock service here
-				mockService.On("GenerateHealthCheck").Return(&model.HealthCheck{Message: cfg.StatusOK, ServiceName: cfg.BookmarkService, InstanceID: instanceID}, nil)
+				mockService.On("GenerateHealthCheck").Return(&model.HealthCheck{Message: cfgStatus.StatusOK, ServiceName: cfgHealthCheck.BookmarkService, InstanceID: instanceID}, nil)
 				return mockService
 			},
 			expectedStatus:   http.StatusOK,
@@ -60,13 +64,13 @@ func TestHealthCheckHandler(t *testing.T) {
 			ginCtx, _ := gin.CreateTestContext(rec)
 			tc.setupRequest(ginCtx)
 			mockService := tc.setupMockService(context.Background())
-			handler := NewHealthCheck(healthCheckMockAdapter{mock: mockService, cfg: &cfg}, cfg)
+			handler := NewHealthCheck(healthCheckMockAdapter{mock: mockService, cfg: &cfg}, cfg, cfgError)
 			handler.GenerateHealthCheck(ginCtx)
 			if rec.Code != tc.expectedStatus {
 				t.Errorf("expected status %d, got %d", tc.expectedStatus, rec.Code)
 			}
 			assert.Equal(t, tc.expectedStatus, rec.Code)
-			assert.Equal(t, tc.expectedResponse, rec.Body.String() == `{"message":"`+cfg.StatusOK+`","service_name":"`+cfg.BookmarkService+`","instance_id":"`+instanceID.String()+`"}`)
+			assert.Equal(t, tc.expectedResponse, rec.Body.String() == `{"message":"`+cfgStatus.StatusOK+`","service_name":"`+cfgHealthCheck.BookmarkService+`","instance_id":"`+instanceID.String()+`"}`)
 		})
 	}
 }

@@ -10,7 +10,8 @@ import (
 
 func TestHealthCheck(t *testing.T) {
 	// Implement your test logic here
-	cfg := *config.CreateNewConfig()
+	cfgStatus := *config.CreateNewConfigStatus()
+	cfgHealthCheck := *config.CreateNewConfigHealthCheck()
 	t.Parallel()
 	testCases := []struct {
 		name                string
@@ -21,8 +22,8 @@ func TestHealthCheck(t *testing.T) {
 	}{
 		{
 			name:                "Health check returns OK",
-			expectedMessage:     cfg.StatusOK,
-			expectedServiceName: cfg.BookmarkService,
+			expectedMessage:     cfgStatus.StatusOK,
+			expectedServiceName: cfgHealthCheck.BookmarkService,
 			expectedInstanceId:  uuid.New(),
 			expectError:         nil,
 		},
@@ -31,10 +32,10 @@ func TestHealthCheck(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// Call the HealthCheck function and compare the result with tc.expectedStatus
 			t.Parallel()
-			svc := NewHealthCheck(cfg)
+			svc := NewHealthCheck(cfgStatus, cfgHealthCheck)
 			result, err := svc.GenerateHealthCheck()
-			assert.Equal(t, tc.expectedMessage, cfg.StatusOK)
-			assert.Equal(t, tc.expectedServiceName, cfg.BookmarkService)
+			assert.Equal(t, tc.expectedMessage, cfgStatus.StatusOK)
+			assert.Equal(t, tc.expectedServiceName, cfgHealthCheck.BookmarkService)
 			assert.IsType(t, uuid.UUID{}, result.InstanceID)
 			assert.ErrorIs(t, err, tc.expectError)
 		})

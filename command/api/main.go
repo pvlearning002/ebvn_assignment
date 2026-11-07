@@ -7,7 +7,11 @@ import (
 
 func main() {
 	cfg := config.CreateNewConfig()
-	engine := api.NewEngine(cfg)
+	cfgStatus := config.CreateNewConfigStatus()
+	cfgError := config.CreateNewConfigError()
+	cfgPaths := config.CreateNewConfigPaths()
+	cfgHealthCheck := config.CreateNewConfigHealthCheck()
+	engine := api.NewEngine(cfg, cfgStatus, cfgError, cfgPaths, cfgHealthCheck)
 	if err := engine.Start(); err != nil {
 		panic(err)
 	}

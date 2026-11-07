@@ -16,14 +16,22 @@ type Engine interface {
 }
 
 type engine struct {
-	app *gin.Engine
-	cfg *config.Config
+	app       *gin.Engine
+	cfg       *config.Config
+	cfgStatus *config.ConfigStatus
+	cfgError  *config.ConfigError
+	cfgPaths  *config.ConfigPaths
+	cfgHealthCheck *config.ConfigHealthCheck
 }
 
-func NewEngine(cfg *config.Config) Engine {
+func NewEngine(cfg *config.Config, cfgStatus *config.ConfigStatus, cfgError *config.ConfigError, cfgPaths *config.ConfigPaths, cfgHealthCheck *config.ConfigHealthCheck) Engine {
 	app := &engine{
-		app: gin.Default(),
-		cfg: cfg,
+		app:       gin.Default(),
+		cfg:       cfg,
+		cfgStatus: cfgStatus,
+		cfgError:  cfgError,
+		cfgPaths:  cfgPaths,
+		cfgHealthCheck: cfgHealthCheck,
 	}
 	app.initRoutes()
 	return app
@@ -44,14 +52,14 @@ func (self *engine) initRoutes() {
 	// Initialize gen pass service
 	genPassService := service.NewGenPass(*self.cfg)
 	// Initialize gen pass handler
-	genPassHandler := handler.NewGenPass(genPassService, *self.cfg)
+	genPassHandler := handler.NewGenPass(genPassService, *self.cfg, *self.cfgStatus, *self.cfgError)
 	// Register gen pass route
-	self.app.GET(self.cfg.PathGetGenPass, genPassHandler.GeneratePassword)
+	self.app.GET(self.cfgPaths.PathGetGenPass, genPassHandler.GeneratePassword)
 
 	// Initialize health check service
-	healthCheckService := service.NewHealthCheck(*self.cfg)
+	healthCheckService := service.NewHealthCheck(*self.cfgStatus, *self.cfgHealthCheck)
 	// Initialize health check handler
-	healthCheckHandler := handler.NewHealthCheck(healthCheckService, *self.cfg)
+	healthCheckHandler := handler.NewHealthCheck(healthCheckService, *self.cfg, *self.cfgError)
 	// Register health check route
-	self.app.GET(self.cfg.PathGetHealthCheck, healthCheckHandler.GenerateHealthCheck)
+	self.app.GET(self.cfgPaths.PathGetHealthCheck, healthCheckHandler.GenerateHealthCheck)
 }

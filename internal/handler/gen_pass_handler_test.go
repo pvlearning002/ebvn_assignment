@@ -16,6 +16,9 @@ func TestGenPassHandler_GeneratePassword(t *testing.T) {
 	// Test implementation
 	t.Parallel()
 	cfg := *config.CreateNewConfig()
+	cfgPaths := *config.CreateNewConfigPaths()
+	cfgStatus := *config.CreateNewConfigStatus()
+	cfgError := *config.CreateNewConfigError()
 	pwd_test := "123456789012"
 	testCases := []struct {
 		name             string
@@ -28,7 +31,7 @@ func TestGenPassHandler_GeneratePassword(t *testing.T) {
 			name: "service success",
 			setupRequest: func(ctx *gin.Context) {
 				// Setup request context if needed
-				ctx.Request = httptest.NewRequest(http.MethodGet, cfg.PathGetGenPass, nil)
+				ctx.Request = httptest.NewRequest(http.MethodGet, cfgPaths.PathGetGenPass, nil)
 			},
 			setupMockService: func(ctx context.Context) *mocks.GenPass {
 				mockSvc := mocks.NewGenPass(t)
@@ -42,7 +45,7 @@ func TestGenPassHandler_GeneratePassword(t *testing.T) {
 			name: "service failed",
 			setupRequest: func(ctx *gin.Context) {
 				// Setup request context if needed
-				ctx.Request = httptest.NewRequest(http.MethodGet, cfg.PathGetGenPass, nil)
+				ctx.Request = httptest.NewRequest(http.MethodGet, cfgPaths.PathGetGenPass, nil)
 			},
 			setupMockService: func(ctx context.Context) *mocks.GenPass {
 				mockSvc := mocks.NewGenPass(t)
@@ -50,7 +53,7 @@ func TestGenPassHandler_GeneratePassword(t *testing.T) {
 				return mockSvc
 			},
 			expectedStatus:   http.StatusInternalServerError,
-			expectedResponse: `{"` + cfg.ErrorTitle + `":"` + cfg.ErrorInternalServer + `"}`,
+			expectedResponse: `{"` + cfgStatus.StatusOK + `":"` + cfgError.ErrorInternalServer + `"}`,
 		},
 	}
 
@@ -61,7 +64,7 @@ func TestGenPassHandler_GeneratePassword(t *testing.T) {
 			ctx, _ := gin.CreateTestContext(recorder)
 			tc.setupRequest(ctx)
 			mockSvc := tc.setupMockService(ctx)
-			handler := NewGenPass(mockSvc, cfg)
+			handler := NewGenPass(mockSvc, cfg, cfgStatus, cfgError)
 			handler.GeneratePassword(ctx)
 			assert.Equal(t, tc.expectedStatus, recorder.Code)
 			assert.Equal(t, tc.expectedResponse, recorder.Body.String())

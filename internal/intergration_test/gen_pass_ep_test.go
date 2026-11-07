@@ -13,6 +13,10 @@ import (
 func TestGenPassEndPoint(t *testing.T) {
 	t.Parallel()
 	cfg := *config.CreateNewConfig()
+	cfgStatus := *config.CreateNewConfigStatus()
+	cfgError := *config.CreateNewConfigError()
+	cfgPaths := *config.CreateNewConfigPaths()
+	cfgHealthCheck := *config.CreateNewConfigHealthCheck()
 	testCases := []struct {
 		name             string
 		setupTestHTTP    func(api api.Engine) *httptest.ResponseRecorder
@@ -23,7 +27,7 @@ func TestGenPassEndPoint(t *testing.T) {
 			name: "normal case",
 			setupTestHTTP: func(api api.Engine) *httptest.ResponseRecorder {
 				recorder := httptest.NewRecorder()
-				req := httptest.NewRequest(http.MethodGet, cfg.PathGetGenPass, nil)
+				req := httptest.NewRequest(http.MethodGet, cfgPaths.PathGetGenPass, nil)
 				api.ServeHTTP(recorder, req)
 				return recorder
 			},
@@ -33,7 +37,7 @@ func TestGenPassEndPoint(t *testing.T) {
 			name: "wrong method case",
 			setupTestHTTP: func(api api.Engine) *httptest.ResponseRecorder {
 				recorder := httptest.NewRecorder()
-				req := httptest.NewRequest(http.MethodPost, cfg.PathGetGenPass, nil)
+				req := httptest.NewRequest(http.MethodPost, cfgPaths.PathGetGenPass, nil)
 				api.ServeHTTP(recorder, req)
 				return recorder
 			},
@@ -45,7 +49,7 @@ func TestGenPassEndPoint(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			testAPI := api.NewEngine(&cfg)
+			testAPI := api.NewEngine(&cfg, &cfgStatus, &cfgError, &cfgPaths, &cfgHealthCheck)
 			recorder := tc.setupTestHTTP(testAPI)
 			assert.Equal(t, tc.expectedStatus, recorder.Code)
 			assert.Contains(t, recorder.Body.String(), tc.expectedResponse)

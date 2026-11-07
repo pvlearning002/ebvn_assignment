@@ -12,19 +12,21 @@ type HealthCheck interface {
 }
 
 type healthCheckService struct {
-	cfg config.Config
+	cfgStatus      config.ConfigStatus
+	cfgHealthCheck config.ConfigHealthCheck
 }
 
-func NewHealthCheck(cfg config.Config) HealthCheck {
+func NewHealthCheck(cfgStatus config.ConfigStatus, cfgHealthCheck config.ConfigHealthCheck) HealthCheck {
 	return &healthCheckService{
-		cfg: cfg,
+		cfgStatus:      cfgStatus,
+		cfgHealthCheck: cfgHealthCheck,
 	}
 }
 
 func (self *healthCheckService) GenerateHealthCheck() (*model.HealthCheck, error) {
 	result := &model.HealthCheck{
-		Message:     self.cfg.StatusOK,
-		ServiceName: self.cfg.BookmarkService,
+		Message:     self.cfgStatus.StatusOK,
+		ServiceName: self.cfgHealthCheck.BookmarkService,
 		InstanceID:  uuid.New(),
 	}
 	return result, nil
