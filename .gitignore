@@ -1,0 +1,10 @@
+# Executable files
+*.exe
+*.out
+*.test
+
+# IDE
+.vscode/
+
+#DEMO
+_func_demo/
