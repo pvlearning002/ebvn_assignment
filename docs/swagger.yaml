@@ -1,4 +1,10 @@
 basePath: /
+definitions:
+  handler.shortenLinkInput:
+    properties:
+      url:
+        type: string
+    type: object
 info:
   contact: {}
   description: This is a sample server for managing bookmarks.
@@ -24,4 +30,41 @@ paths:
       summary: Generate Random Password
       tags:
       - Password
+  /v1/links/shorten:
+    post:
+      consumes:
+      - application/json
+      description: CreateShortenLink handles the HTTP request for creating a shortened
+        URL.
+      parameters:
+      - description: Input required
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handler.shortenLinkInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create Shortened URL
+      tags:
+      - link
 swagger: "2.0"

@@ -8,7 +8,9 @@ import (
 	_ "github.com/pvlearning002/ebvn_assignment/docs"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
 	"github.com/pvlearning002/ebvn_assignment/internal/handler"
+	repository "github.com/pvlearning002/ebvn_assignment/internal/repository"
 	service "github.com/pvlearning002/ebvn_assignment/internal/service"
+	"github.com/redis/go-redis/v9"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -25,9 +27,10 @@ type engine struct {
 	cfgError       *config.ConfigError
 	cfgPaths       *config.ConfigPaths
 	cfgHealthCheck *config.ConfigHealthCheck
+	redisClient    *redis.Client
 }
 
-func NewEngine(cfg *config.Config, cfgStatus *config.ConfigStatus, cfgError *config.ConfigError, cfgPaths *config.ConfigPaths, cfgHealthCheck *config.ConfigHealthCheck) Engine {
+func NewEngine(cfg *config.Config, cfgStatus *config.ConfigStatus, cfgError *config.ConfigError, cfgPaths *config.ConfigPaths, cfgHealthCheck *config.ConfigHealthCheck, redisClient *redis.Client) Engine {
 	app := &engine{
 		app:            gin.Default(),
 		cfg:            cfg,
@@ -35,6 +38,7 @@ func NewEngine(cfg *config.Config, cfgStatus *config.ConfigStatus, cfgError *con
 		cfgError:       cfgError,
 		cfgPaths:       cfgPaths,
 		cfgHealthCheck: cfgHealthCheck,
+		redisClient:    redisClient,
 	}
 	app.initRoutes()
 	return app
@@ -66,4 +70,12 @@ func (self *engine) initRoutes() {
 	healthCheckHandler := handler.NewHealthCheck(healthCheckService, *self.cfg, *self.cfgError)
 	// Register health check route
 	self.app.GET(self.cfgPaths.PathGetHealthCheck, healthCheckHandler.GenerateHealthCheck)
+
+	urlStorage := repository.NewURLStorage(self.redisClient, self.cfg)
+	// Initialize shorten URL service
+	shortenURLService := service.NewShortenURLService(urlStorage, genPassService, *self.cfg)
+	// Initialize shorten URL handler
+	shortenURLHandler := handler.NewShortenURLHandler(shortenURLService, *self.cfg, *self.cfgError)
+	// Register shorten URL route
+	self.app.POST(self.cfgPaths.PathPostShortenURL, shortenURLHandler.CreateShortenLink)
 }

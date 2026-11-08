@@ -10,8 +10,10 @@ type Config struct {
 	PasswordLengthDefault int    `default:"12" envconfig:"PASSWORD_LENGTH_DEFAULT"`
 	Dash                  string `default:"-" envconfig:"DASH"`
 	PasswordTitle         string `default:"Password" envconfig:"PASSWORD_TITLE"`
+	KeyTitle              string `default:"key" envconfig:"KEY_TITLE"`
 	StringEmpty           string `default:"" envconfig:"STRING_EMPTY"`
 	StringSpace           string `default:" " envconfig:"STRING_SPACE"`
+	RedisExpiredTime      int    `default:"3600" envconfig:"REDIS_EXPIRED_TIME"`
 }
 
 func NewConfig() (*Config, error) {
@@ -59,6 +61,7 @@ type ConfigPaths struct {
 	PathSwagger        string `default:"/swagger/*any" envconfig:"PATH_GET_GEN_PASS_SWAGGER"`
 	PathGetGenPass     string `default:"/genpass" envconfig:"PATH_GET_GEN_PASS"`
 	PathGetHealthCheck string `default:"/health" envconfig:"PATH_GET_HEALTH_CHECK"`
+	PathPostShortenURL string `default:"/v1/links/shorten" envconfig:"PATH_POST_SHORTEN_URL"`
 }
 
 func NewConfigPaths() (*ConfigPaths, error) {
@@ -81,6 +84,7 @@ func CreateNewConfigPaths() *ConfigPaths {
 /* Error Config */
 type ConfigError struct {
 	ErrorInternalServer string `default:"Internal Server Error" envconfig:"ERROR_INTERNAL_SERVER"`
+	ErrorInvalidInput   string `default:"Invalid input" envconfig:"ERROR_INVALID_INPUT"`
 	ErrorTitle          string `default:"Error" envconfig:"ERROR_TITLE"`
 }
 
