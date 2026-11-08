@@ -6,10 +6,9 @@
         "contact": {},
         "version": "1.0.0"
     },
-    "host": "localhost:8080",
     "basePath": "/",
     "paths": {
-        "/generate-password": {
+        "/genpass": {
             "get": {
                 "description": "GeneratePassword handles the HTTP request for generating a password.",
                 "tags": [

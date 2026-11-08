@@ -29,10 +29,12 @@ func NewGenPass(cfg config.Config) GenPass {
 func (self *genPassService) GeneratePassword() (string, error) {
 	result := strings.ReplaceAll(uuid.New().String(), self.cfg.Dash, self.cfg.StringEmpty)
 	pass_len := len(result)
+
 	for pass_len < self.cfg.PasswordLengthDefault {
 		result += strings.ReplaceAll(uuid.New().String(), self.cfg.Dash, self.cfg.StringEmpty)
 		pass_len = len(result)
 	}
+
 	result = result[:self.cfg.PasswordLengthDefault]
 	return result, nil
 }

@@ -8,27 +8,43 @@ import (
 )
 
 func TestGeneratePassword(t *testing.T) {
-	cfg := *config.CreateNewConfig()
 	testCases := []struct {
 		name           string
-		expectedLength int
-		expectError    error
+		passwordLength int
 	}{
 		{
-			name:           "success",
-			expectedLength: cfg.PasswordLengthDefault,
-			expectError:    nil,
+			name:           "password length less than UUID length",
+			passwordLength: 12,
+		},
+		{
+			name:           "password length equal to UUID length",
+			passwordLength: 32,
+		},
+		{
+			name:           "password length greater than UUID length",
+			passwordLength: 36,
+		},
+		{
+			name:           "password length requires multiple UUIDs",
+			passwordLength: 64,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			testSvc := NewGenPass(cfg)
-			pass, err := testSvc.GeneratePassword()
-			assert.NotNil(t, pass)
-			assert.Equal(t, tc.expectError, err)
-			assert.Equal(t, tc.expectedLength, len(pass))
+			cfg := *config.CreateNewConfig()
+			// Update password length for each test case.
+			cfg.PasswordLengthDefault = tc.passwordLength
+			service := &genPassService{
+				cfg: cfg,
+			}
+
+			result, err := service.GeneratePassword()
+
+			assert.NoError(t, err)
+			assert.Equal(t, tc.passwordLength, len(result))
+			assert.NotContains(t, result, "-")
+			assert.NotEmpty(t, result)
 		})
 	}
 }

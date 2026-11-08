@@ -57,7 +57,6 @@ func (self *engine) initRoutes() {
 	// Initialize gen pass handler
 	genPassHandler := handler.NewGenPass(genPassService, *self.cfg, *self.cfgStatus, *self.cfgError)
 	// Register gen pass route
-	// self.app.GET(self.cfgPaths.PathSwagger, ginSwagger.WrapHandler(swaggerFiles.Handler))
 	self.app.GET(self.cfgPaths.PathSwagger, ginSwagger.WrapHandler(swaggerFiles.Handler))
 	self.app.GET(self.cfgPaths.PathGetGenPass, genPassHandler.GeneratePassword)
 
