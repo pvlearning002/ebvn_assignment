@@ -59,9 +59,17 @@
 				
 				<option value="file1">github.com/pvlearning002/ebvn_assignment/internal/handler/health_check.go (100.0%)</option>
 				
-				<option value="file2">github.com/pvlearning002/ebvn_assignment/internal/service/gen_pass.go (100.0%)</option>
+				<option value="file2">github.com/pvlearning002/ebvn_assignment/internal/handler/shorten_url.go (100.0%)</option>
 				
-				<option value="file3">github.com/pvlearning002/ebvn_assignment/internal/service/health_check.go (100.0%)</option>
+				<option value="file3">github.com/pvlearning002/ebvn_assignment/internal/repository/url_storage.go (100.0%)</option>
+				
+				<option value="file4">github.com/pvlearning002/ebvn_assignment/internal/service/gen_pass.go (100.0%)</option>
+				
+				<option value="file5">github.com/pvlearning002/ebvn_assignment/internal/service/health_check.go (100.0%)</option>
+				
+				<option value="file6">github.com/pvlearning002/ebvn_assignment/internal/service/shorten_url.go (100.0%)</option>
+				
+				<option value="file7">github.com/pvlearning002/ebvn_assignment/pkg/redis/redis_client.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -109,7 +117,7 @@ type genPassHandler struct {
 
 // NewGenPass creates a new instance of the genPassHandler with the provided GenPass service and configuration.
 func NewGenPass(genPassSvc service.GenPass, cfg config.Config, cfgStatus config.ConfigStatus, cfgError config.ConfigError) GenPass {
-        <span class="cov10" title="6">return &amp;genPassHandler{
+        <span class="cov10" title="8">return &amp;genPassHandler{
                 genPassSvc: genPassSvc,
                 cfg:        cfg,
                 cfgStatus:  cfgStatus,
@@ -125,7 +133,7 @@ func NewGenPass(genPassSvc service.GenPass, cfg config.Config, cfgStatus config.
 // @Failure 500 {object} map[string]string
 // @Router /genpass [get]
 func (self *genPassHandler) GeneratePassword(c *gin.Context) {
-        <span class="cov6" title="3">pwd, err := self.genPassSvc.GeneratePassword()
+        <span class="cov5" title="3">pwd, err := self.genPassSvc.GeneratePassword()
         if err != nil || len(pwd) != self.cfg.PasswordLengthDefault </span>{
                 <span class="cov1" title="1">c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{self.cfgStatus.StatusOK: self.cfgError.ErrorInternalServer})
                 return
@@ -155,11 +163,11 @@ type healthCheckHandler struct {
 }
 
 func NewHealthCheck(svc service.HealthCheck, cfg config.Config, cfgError config.ConfigError) HealthCheck {
-        <span class="cov10" title="6">return &amp;healthCheckHandler{svc: svc, cfg: cfg, cfgError: cfgError}
+        <span class="cov10" title="8">return &amp;healthCheckHandler{svc: svc, cfg: cfg, cfgError: cfgError}
 </span>}
 
 func (self *healthCheckHandler) GenerateHealthCheck(c *gin.Context) {
-        <span class="cov6" title="3">modelHealthCheck, err := self.svc.GenerateHealthCheck()
+        <span class="cov5" title="3">modelHealthCheck, err := self.svc.GenerateHealthCheck()
         if err != nil </span>{
                 <span class="cov1" title="1">c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInternalServer})
                 return
@@ -168,7 +176,106 @@ func (self *healthCheckHandler) GenerateHealthCheck(c *gin.Context) {
 }
 </pre>
 		
-		<pre class="file" id="file2" style="display: none">package service
+		<pre class="file" id="file2" style="display: none">package handler
+
+import (
+        "net/http"
+
+        "github.com/gin-gonic/gin"
+        "github.com/pvlearning002/ebvn_assignment/internal/config"
+        "github.com/pvlearning002/ebvn_assignment/internal/service"
+)
+
+type ShortenURL interface {
+        CreateShortenLink(ctx *gin.Context)
+}
+
+// shortenURLHandler handles the HTTP requests for shortening URLs.
+type shortenURLHandler struct {
+        shortenURLService service.ShortenURL
+        cfg               config.Config
+        cfgError          config.ConfigError
+}
+
+// NewShortenURLHandler creates a new instance of the ShortenURLHandler with the provided service.
+func NewShortenURLHandler(svc service.ShortenURL, cfg config.Config, cfgError config.ConfigError) *shortenURLHandler {
+        <span class="cov10" title="9">return &amp;shortenURLHandler{
+                shortenURLService: svc,
+                cfg:               cfg,
+                cfgError:          cfgError,
+</span>        }
+}
+
+type shortenLinkInput struct {
+        Url string `json:"url"`
+}
+
+// CreateShortenLink handles the creation of a shortened URL.
+// @Summary Create Shortened URL
+// @Description CreateShortenLink handles the HTTP request for creating a shortened URL.
+// @Tags link
+// @Accept application/json
+// @Produce application/json
+// @Param input body shortenLinkInput true "Input required"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /v1/links/shorten [post]
+func (self *shortenURLHandler) CreateShortenLink(ctx *gin.Context) {
+        // Implementation for creating a shortened link
+        <span class="cov6" title="4">input := &amp;shortenLinkInput{}
+        if err := ctx.ShouldBindJSON(input); err != nil </span>{
+                <span class="cov1" title="1">ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInvalidInput})
+                return
+</span>        }
+        <span class="cov5" title="3">key, err := self.shortenURLService.CreateShortenLink(ctx, input.Url)
+        if err != nil </span>{
+                <span class="cov1" title="1">ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInternalServer})
+                return
+</span>        }
+        <span class="cov3" title="2">ctx.JSON(http.StatusOK, gin.H{self.cfg.KeyTitle: key})</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package repository
+
+import (
+        "context"
+        "time"
+
+        "github.com/redis/go-redis/v9"
+
+        "github.com/pvlearning002/ebvn_assignment/internal/config"
+)
+
+type URLStorage interface {
+        StoreURL(ctx context.Context, key, url string) error
+        GetURL(ctx context.Context, key string) (string, error)
+}
+
+type urlStorage struct {
+        client *redis.Client
+        cfg    *config.Config
+}
+
+func NewURLStorage(client *redis.Client, cfg *config.Config) URLStorage {
+        <span class="cov10" title="7">return &amp;urlStorage{
+                client: client,
+                cfg:    cfg,
+</span>        }
+}
+
+func (self *urlStorage) StoreURL(ctx context.Context, key, url string) error {
+        <span class="cov4" title="2">expTime := time.Duration(self.cfg.RedisExpiredTime) * time.Second
+        return self.client.Set(ctx, key, url, expTime).Err()
+</span>}
+
+func (self *urlStorage) GetURL(ctx context.Context, key string) (string, error) {
+        <span class="cov1" title="1">return self.client.Get(ctx, key).Result()
+</span>}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package service
 
 import (
         "strings"
@@ -190,27 +297,27 @@ type genPassService struct {
 
 // NewGenPass creates a new instance of the genPassService with the provided configuration.
 func NewGenPass(cfg config.Config) GenPass {
-        <span class="cov8" title="4">return &amp;genPassService{
+        <span class="cov10" title="6">return &amp;genPassService{
                 cfg: cfg,
 </span>        }
 }
 
 // GeneratePassword generates a random password using UUIDs and returns it as a string.
 func (self *genPassService) GeneratePassword() (string, error) {
-        <span class="cov10" title="5">result := strings.ReplaceAll(uuid.New().String(), self.cfg.Dash, self.cfg.StringEmpty)
+        <span class="cov10" title="6">result := strings.ReplaceAll(uuid.New().String(), self.cfg.Dash, self.cfg.StringEmpty)
         pass_len := len(result)
 </span>
-        <span class="cov10" title="5">for pass_len &lt; self.cfg.PasswordLengthDefault </span>{
+        <span class="cov10" title="6">for pass_len &lt; self.cfg.PasswordLengthDefault </span>{
                 <span class="cov4" title="2">result += strings.ReplaceAll(uuid.New().String(), self.cfg.Dash, self.cfg.StringEmpty)
                 pass_len = len(result)
 </span>        }
 
-        <span class="cov10" title="5">result = result[:self.cfg.PasswordLengthDefault]
+        <span class="cov10" title="6">result = result[:self.cfg.PasswordLengthDefault]
         return result, nil</span>
 }
 </pre>
 		
-		<pre class="file" id="file3" style="display: none">package service
+		<pre class="file" id="file5" style="display: none">package service
 
 import (
         "github.com/google/uuid"
@@ -229,7 +336,7 @@ type healthCheckService struct {
 }
 
 func NewHealthCheck(cfgStatus config.ConfigStatus, cfgHealthCheck config.ConfigHealthCheck) HealthCheck {
-        <span class="cov10" title="5">return &amp;healthCheckService{
+        <span class="cov10" title="7">return &amp;healthCheckService{
                 cfgStatus:      cfgStatus,
                 cfgHealthCheck: cfgHealthCheck,
 </span>        }
@@ -243,6 +350,89 @@ func (self *healthCheckService) GenerateHealthCheck() (*model.HealthCheck, error
 </span>        }
         <span class="cov4" title="2">return result, nil
 </span>}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package service
+
+import (
+        "context"
+
+        "github.com/pvlearning002/ebvn_assignment/internal/config"
+        "github.com/pvlearning002/ebvn_assignment/internal/repository"
+)
+
+// ShortenURL defines the interface for shortening URLs.
+type ShortenURL interface {
+        CreateShortenLink(ctx context.Context, url string) (string, error)
+}
+
+// shortenURLService is the implementation of the ShortenURLService interface.
+type shortenURLService struct {
+        urlStorage repository.URLStorage
+        genPass    GenPass
+        cfg        config.Config
+}
+
+// NewShortenURLService creates a new instance of the shortenURLService with the provided URL storage and configuration.
+func NewShortenURLService(urlStorage repository.URLStorage, genPass GenPass, cfg config.Config) ShortenURL {
+        <span class="cov10" title="6">return &amp;shortenURLService{
+                urlStorage: urlStorage,
+                genPass:    genPass,
+                cfg:        cfg,
+</span>        }
+}
+
+func (self *shortenURLService) generateKey(ctx context.Context) (string, error) {
+        <span class="cov10" title="6">key, err := self.genPass.GeneratePassword()
+        if err != nil </span>{
+                <span class="cov1" title="1">return self.cfg.StringEmpty, err
+</span>        }
+        <span class="cov9" title="5">url_check, _ := self.urlStorage.GetURL(ctx, key)
+        for url_check != self.cfg.StringEmpty </span>{
+                <span class="cov4" title="2">key, err = self.genPass.GeneratePassword()
+                if err != nil </span>{
+                        <span class="cov1" title="1">return self.cfg.StringEmpty, err
+</span>                }
+                <span class="cov1" title="1">url_check, _ = self.urlStorage.GetURL(ctx, key)</span>
+        }
+
+        <span class="cov7" title="4">return key, nil</span>
+}
+
+// ShortenURL shortens the provided original URL and returns the shortened URL.
+func (self *shortenURLService) CreateShortenLink(ctx context.Context, url string) (string, error) {
+        <span class="cov7" title="4">key, err := self.generateKey(ctx)
+        if err != nil </span>{
+                <span class="cov1" title="1">return self.cfg.StringEmpty, err
+</span>        }
+
+        <span class="cov6" title="3">err = self.urlStorage.StoreURL(ctx, key, url)
+        if err != nil </span>{
+                <span class="cov1" title="1">return self.cfg.StringEmpty, err
+</span>        }
+        <span class="cov4" title="2">return key, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package redis
+
+import (
+        "github.com/redis/go-redis/v9"
+)
+
+// NewRedisClient creates a new Redis client using the provided environment prefix for configuration.
+func NewRedisClient(envPrefix string) (*redis.Client, error) {
+        <span class="cov10" title="3">cfg, err := newConfig(envPrefix)
+        if err != nil </span>{
+                <span class="cov1" title="1">return nil, err
+</span>        }
+        <span class="cov6" title="2">rdb := redis.NewClient(&amp;redis.Options{
+                Addr:     cfg.Address,
+                Password: cfg.Password,
+                DB:       cfg.DB,
+        })
+        return rdb, nil</span>
+}
 </pre>
 		
 		</div>

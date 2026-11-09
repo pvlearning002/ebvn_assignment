@@ -1,7 +1,7 @@
 import re
 
 COVERAGE_EXCLUDE = (
-    r"main.go|api.go|test|docs|_func_demo|config|"
+    r"main.go|api.go|redis_client_mock.go|test|docs|_func_demo|config|"
     r"internal/service/mocks/|"
     r"internal/service/services_mocks/"
 )

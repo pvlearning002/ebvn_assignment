@@ -11,6 +11,15 @@ import (
 	testifymock "github.com/stretchr/testify/mock"
 )
 
+type MockGenPass struct {
+	testifymock.Mock
+}
+
+func (m *MockGenPass) GeneratePassword() (string, error) {
+	args := m.Called()
+	return args.String(0), args.Error(1)
+}
+
 // Mock GenPass
 type MockKeyGenerator struct {
 	testifymock.Mock
@@ -160,4 +169,86 @@ func TestCreateShortenLink(t *testing.T) {
 			mockStorage.AssertExpectations(t)
 		})
 	}
+}
+
+func TestGenerateKey_KeyAlreadyExists(t *testing.T) {
+	cfg := *config.CreateNewConfig()
+
+	mockGenPass := new(MockGenPass)
+	mockStorage := new(MockURLStorage)
+
+	ctx := context.Background()
+
+	// First GeneratePassword
+	mockGenPass.On("GeneratePassword").
+		Once().
+		Return("key001", nil)
+
+	// First key already exists
+	mockStorage.On("GetURL", ctx, "key001").
+		Once().
+		Return("https://google.com", nil)
+
+	// Generate a new key
+	mockGenPass.On("GeneratePassword").
+		Once().
+		Return("key002", nil)
+
+	// New key does not exist
+	mockStorage.On("GetURL", ctx, "key002").
+		Once().
+		Return(cfg.StringEmpty, nil)
+
+	service := &shortenURLService{
+		genPass:    mockGenPass,
+		urlStorage: mockStorage,
+		cfg:        cfg,
+	}
+
+	result, err := service.generateKey(ctx)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "key002", result)
+
+	mockGenPass.AssertExpectations(t)
+	mockStorage.AssertExpectations(t)
+}
+
+func TestGenerateKey(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("generate password error inside loop", func(t *testing.T) {
+		mockGenerator := new(MockGenPass)
+		mockStorage := new(MockURLStorage)
+
+		cfg := *config.CreateNewConfig()
+		svc := &shortenURLService{
+			genPass:    mockGenerator,
+			urlStorage: mockStorage,
+			cfg:        cfg,
+		}
+
+		// Lần đầu GeneratePassword thành công
+		mockGenerator.On("GeneratePassword").
+			Once().
+			Return("abc123", nil)
+
+		// Key abc123 đã tồn tại
+		mockStorage.On("GetURL", ctx, "abc123").
+			Once().
+			Return("https://example.com", nil)
+
+		// Lần thứ hai GeneratePassword trả về lỗi
+		mockGenerator.On("GeneratePassword").
+			Once().
+			Return("", errors.New("generate password failed"))
+
+		key, err := svc.generateKey(ctx)
+
+		assert.Empty(t, key)
+		assert.Error(t, err)
+
+		mockGenerator.AssertExpectations(t)
+		mockStorage.AssertExpectations(t)
+	})
 }
