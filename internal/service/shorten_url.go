@@ -30,13 +30,13 @@ func NewShortenURLService(urlStorage repository.URLStorage, genPass GenPass, cfg
 
 // ShortenURL shortens the provided original URL and returns the shortened URL.
 func (self *shortenURLService) CreateShortenLink(ctx context.Context, url string) (string, error) {
-	code, err := self.genPass.GeneratePassword()
+	key, err := self.genPass.GeneratePassword()
 	if err != nil {
 		return self.cfg.StringEmpty, err
 	}
-	err = self.urlStorage.StoreURL(ctx, code, url)
+	err = self.urlStorage.StoreURL(ctx, key, url)
 	if err != nil {
 		return self.cfg.StringEmpty, err
 	}
-	return code, nil
+	return key, nil
 }
