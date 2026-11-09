@@ -17,7 +17,7 @@ func main() {
 	cfgError := config.CreateNewConfigError()
 	cfgPaths := config.CreateNewConfigPaths()
 	cfgHealthCheck := config.CreateNewConfigHealthCheck()
-	redisClient, err := redis.NewClient(cfg.StringEmpty)
+	redisClient, err := redis.NewRedisClient(cfg.StringEmpty)
 	if err != nil {
 		panic(err)
 	}
