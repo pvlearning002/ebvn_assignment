@@ -1,4 +1,5 @@
 
+COVERAGE_THRESHOLD=80
 .PHONY: run swag test swagrun
 
 run:
@@ -8,8 +9,8 @@ swag:
 	swag init -g ./command/api/main.go -o ./docs
 
 test:
-	go test ./... -coverpkg=./... -covermode=atomic -p 1 -coverprofile=coverage.tmp
-	python filter_coverage.py
+	go test ./... -coverprofile=coverage.tmp -covermode=atomic -coverpkg=./... -p 1
+	python python_scripts/check_coverage.py --threshold $(COVERAGE_THRESHOLD)
 	go tool cover -html=coverage.out -o coverage.html
 
 swagrun: swag run
