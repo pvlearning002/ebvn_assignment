@@ -7,6 +7,9 @@ import (
 )
 
 func BuildLogMessage(message string, skip ...int) string {
+	if message == "" {
+		message = "null"
+	}
 	default_skip := 2
 	if len(skip) > 0 {
 		default_skip = skip[0]
