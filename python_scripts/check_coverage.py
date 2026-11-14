@@ -5,7 +5,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 COVERAGE_INPUT = Path("coverage.tmp")
 COVERAGE_OUTPUT = Path("coverage.out")
 
@@ -13,10 +12,17 @@ COVERAGE_EXCLUDE = (
     r"main\.go|api\.go|redis_client_mock\.go|test|docs|_func_demo|config|"
     r"internal/service/mocks/|"
     r"internal/service/services_mocks/|"
-    r"pkg/logger/"
+    r"pkg/logger/|"
+    r"pkg/utils/"
 )
 
+
 file_path = "github.com/pvlearning002/ebvn_assignment/pkg/logger/level.go"
+
+if re.search(COVERAGE_EXCLUDE, file_path):
+    print("EXCLUDED")
+else:
+    print("NOT EXCLUDED")
 
 
 def filter_coverage():
