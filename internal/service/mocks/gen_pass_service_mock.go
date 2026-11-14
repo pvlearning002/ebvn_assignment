@@ -37,6 +37,34 @@ func (_m *GenPass) GeneratePassword() (string, error) {
 	return r0, r1
 }
 
+// GenerateRandomString provides a mock function with given fields: length
+func (_m *GenPass) GenerateRandomString(length int) (string, error) {
+	ret := _m.Called(length)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GenerateRandomString")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(int) (string, error)); ok {
+		return rf(length)
+	}
+	if rf, ok := ret.Get(0).(func(int) string); ok {
+		r0 = rf(length)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(int) error); ok {
+		r1 = rf(length)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewGenPass creates a new instance of GenPass. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewGenPass(t interface {

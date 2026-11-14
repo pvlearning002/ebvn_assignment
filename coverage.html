@@ -166,6 +166,13 @@ func NewHealthCheck(svc service.HealthCheck, cfg config.Config, cfgError config.
         <span class="cov10" title="8">return &amp;healthCheckHandler{svc: svc, cfg: cfg, cfgError: cfgError}
 </span>}
 
+// @Summary Generate Health Check
+// @Description Generate Health Check handles the HTTP request for generating a health check.
+// @Tags Health
+// @Produces application/json
+// @Success 200 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /health [get]
 func (self *healthCheckHandler) GenerateHealthCheck(c *gin.Context) {
         <span class="cov5" title="3">modelHealthCheck, err := self.svc.GenerateHealthCheck()
         if err != nil </span>{

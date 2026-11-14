@@ -5,6 +5,7 @@ package mocks
 import (
 	context "context"
 
+	model "github.com/pvlearning002/ebvn_assignment/internal/model"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -14,22 +15,24 @@ type ShortenURL struct {
 }
 
 // CreateShortenLink provides a mock function with given fields: ctx, url
-func (_m *ShortenURL) CreateShortenLink(ctx context.Context, url string) (string, error) {
+func (_m *ShortenURL) CreateShortenLink(ctx context.Context, url string) (*model.ShortenLinkOutput, error) {
 	ret := _m.Called(ctx, url)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateShortenLink")
 	}
 
-	var r0 string
+	var r0 *model.ShortenLinkOutput
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*model.ShortenLinkOutput, error)); ok {
 		return rf(ctx, url)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) *model.ShortenLinkOutput); ok {
 		r0 = rf(ctx, url)
 	} else {
-		r0 = ret.Get(0).(string)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ShortenLinkOutput)
+		}
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
