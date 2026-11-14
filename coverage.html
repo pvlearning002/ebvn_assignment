@@ -69,7 +69,7 @@
 				
 				<option value="file6">github.com/pvlearning002/ebvn_assignment/internal/service/shorten_url.go (100.0%)</option>
 				
-				<option value="file7">github.com/pvlearning002/ebvn_assignment/pkg/redis/redis_client.go (100.0%)</option>
+				<option value="file7">github.com/pvlearning002/ebvn_assignment/pkg/redis_utils/redis_client.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -183,7 +183,9 @@ import (
 
         "github.com/gin-gonic/gin"
         "github.com/pvlearning002/ebvn_assignment/internal/config"
+        "github.com/pvlearning002/ebvn_assignment/internal/model"
         "github.com/pvlearning002/ebvn_assignment/internal/service"
+        "github.com/redis/go-redis/v9"
 )
 
 type ShortenURL interface {
@@ -195,19 +197,17 @@ type shortenURLHandler struct {
         shortenURLService service.ShortenURL
         cfg               config.Config
         cfgError          config.ConfigError
+        client            *redis.Client
 }
 
 // NewShortenURLHandler creates a new instance of the ShortenURLHandler with the provided service.
-func NewShortenURLHandler(svc service.ShortenURL, cfg config.Config, cfgError config.ConfigError) *shortenURLHandler {
-        <span class="cov10" title="9">return &amp;shortenURLHandler{
+func NewShortenURLHandler(svc service.ShortenURL, cfg config.Config, cfgError config.ConfigError, client *redis.Client) *shortenURLHandler {
+        <span class="cov10" title="10">return &amp;shortenURLHandler{
                 shortenURLService: svc,
                 cfg:               cfg,
                 cfgError:          cfgError,
+                client:            client,
 </span>        }
-}
-
-type shortenLinkInput struct {
-        Url string `json:"url"`
 }
 
 // CreateShortenLink handles the creation of a shortened URL.
@@ -216,24 +216,28 @@ type shortenLinkInput struct {
 // @Tags link
 // @Accept application/json
 // @Produce application/json
-// @Param input body shortenLinkInput true "Input required"
+// @Param input body model.ShortenLinkInput true "Input required"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /v1/links/shorten [post]
 func (self *shortenURLHandler) CreateShortenLink(ctx *gin.Context) {
         // Implementation for creating a shortened link
-        <span class="cov6" title="4">input := &amp;shortenLinkInput{}
+        <span class="cov7" title="5">if err := self.client.Ping(ctx).Err(); err != nil </span>{
+                <span class="cov1" title="1">ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorRedisConnection})
+                return
+</span>        }
+        <span class="cov6" title="4">input := &amp;model.ShortenLinkInput{}
         if err := ctx.ShouldBindJSON(input); err != nil </span>{
                 <span class="cov1" title="1">ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInvalidInput})
                 return
 </span>        }
-        <span class="cov5" title="3">key, err := self.shortenURLService.CreateShortenLink(ctx, input.Url)
+        <span class="cov5" title="3">shortenLinkOutput, err := self.shortenURLService.CreateShortenLink(ctx, input.Url)
         if err != nil </span>{
                 <span class="cov1" title="1">ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInternalServer})
                 return
 </span>        }
-        <span class="cov3" title="2">ctx.JSON(http.StatusOK, gin.H{self.cfg.KeyTitle: key})</span>
+        <span class="cov3" title="2">ctx.JSON(http.StatusOK, shortenLinkOutput)</span>
 }
 </pre>
 		
@@ -278,6 +282,7 @@ func (self *urlStorage) GetURL(ctx context.Context, key string) (string, error) 
 		<pre class="file" id="file4" style="display: none">package service
 
 import (
+        "errors"
         "strings"
 
         "github.com/google/uuid"
@@ -287,33 +292,48 @@ import (
 // mockery --name GenPass --filename gen_pass_service_mock.go
 // GenPass defines the interface for generating passwords.
 type GenPass interface {
+        GenerateRandomString(length int) (string, error)
         GeneratePassword() (string, error)
 }
 
 // genPassService is the implementation of the GenPass interface.
 type genPassService struct {
-        cfg config.Config
+        cfg      config.Config
+        cfgError config.ConfigError
 }
 
 // NewGenPass creates a new instance of the genPassService with the provided configuration.
-func NewGenPass(cfg config.Config) GenPass {
-        <span class="cov10" title="6">return &amp;genPassService{
-                cfg: cfg,
+func NewGenPass(cfg config.Config, cfgError config.ConfigError) GenPass {
+        <span class="cov8" title="6">return &amp;genPassService{
+                cfg:      cfg,
+                cfgError: cfgError,
 </span>        }
+}
+
+func (self *genPassService) GenerateRandomString(length int) (string, error) {
+        <span class="cov10" title="9">if length &lt;= 0 </span>{
+                <span class="cov5" title="3">return self.cfg.StringEmpty, errors.New(self.cfgError.ErrorLengthZero)
+</span>        }
+
+        <span class="cov8" title="6">result := strings.ReplaceAll(uuid.New().String(), self.cfg.Dash, self.cfg.StringEmpty)
+        pass_len := len(result)
+</span>
+        <span class="cov8" title="6">for pass_len &lt; length </span>{
+                <span class="cov3" title="2">result += strings.ReplaceAll(uuid.New().String(), self.cfg.Dash, self.cfg.StringEmpty)
+                pass_len = len(result)
+</span>        }
+
+        <span class="cov8" title="6">result = result[:length]
+        return result, nil</span>
 }
 
 // GeneratePassword generates a random password using UUIDs and returns it as a string.
 func (self *genPassService) GeneratePassword() (string, error) {
-        <span class="cov10" title="6">result := strings.ReplaceAll(uuid.New().String(), self.cfg.Dash, self.cfg.StringEmpty)
-        pass_len := len(result)
-</span>
-        <span class="cov10" title="6">for pass_len &lt; self.cfg.PasswordLengthDefault </span>{
-                <span class="cov4" title="2">result += strings.ReplaceAll(uuid.New().String(), self.cfg.Dash, self.cfg.StringEmpty)
-                pass_len = len(result)
+        <span class="cov3" title="2">result, err := self.GenerateRandomString(self.cfg.PasswordLengthDefault)
+        if err != nil </span>{
+                <span class="cov1" title="1">return self.cfg.StringEmpty, err
 </span>        }
-
-        <span class="cov10" title="6">result = result[:self.cfg.PasswordLengthDefault]
-        return result, nil</span>
+        <span class="cov1" title="1">return result, nil</span>
 }
 </pre>
 		
@@ -327,7 +347,7 @@ import (
 
 //go:generate mockery --name=HealthCheck --filename=health_check_mck.go
 type HealthCheck interface {
-        GenerateHealthCheck() (*model.HealthCheck, error)
+        GenerateHealthCheck() (*model.HealthCheckOutput, error)
 }
 
 type healthCheckService struct {
@@ -342,8 +362,8 @@ func NewHealthCheck(cfgStatus config.ConfigStatus, cfgHealthCheck config.ConfigH
 </span>        }
 }
 
-func (self *healthCheckService) GenerateHealthCheck() (*model.HealthCheck, error) {
-        <span class="cov4" title="2">result := &amp;model.HealthCheck{
+func (self *healthCheckService) GenerateHealthCheck() (*model.HealthCheckOutput, error) {
+        <span class="cov4" title="2">result := &amp;model.HealthCheckOutput{
                 Message:     self.cfgStatus.StatusOK,
                 ServiceName: self.cfgHealthCheck.BookmarkService,
                 InstanceID:  uuid.New(),
@@ -358,12 +378,13 @@ import (
         "context"
 
         "github.com/pvlearning002/ebvn_assignment/internal/config"
+        "github.com/pvlearning002/ebvn_assignment/internal/model"
         "github.com/pvlearning002/ebvn_assignment/internal/repository"
 )
 
 // ShortenURL defines the interface for shortening URLs.
 type ShortenURL interface {
-        CreateShortenLink(ctx context.Context, url string) (string, error)
+        CreateShortenLink(ctx context.Context, url string) (*model.ShortenLinkOutput, error)
 }
 
 // shortenURLService is the implementation of the ShortenURLService interface.
@@ -371,67 +392,111 @@ type shortenURLService struct {
         urlStorage repository.URLStorage
         genPass    GenPass
         cfg        config.Config
+        cfgError   config.ConfigError
 }
 
 // NewShortenURLService creates a new instance of the shortenURLService with the provided URL storage and configuration.
-func NewShortenURLService(urlStorage repository.URLStorage, genPass GenPass, cfg config.Config) ShortenURL {
-        <span class="cov10" title="6">return &amp;shortenURLService{
+func NewShortenURLService(urlStorage repository.URLStorage, genPass GenPass, cfg config.Config, cfgError config.ConfigError) ShortenURL {
+        <span class="cov10" title="12">return &amp;shortenURLService{
                 urlStorage: urlStorage,
                 genPass:    genPass,
                 cfg:        cfg,
+                cfgError:   cfgError,
 </span>        }
 }
 
 func (self *shortenURLService) generateKey(ctx context.Context) (string, error) {
-        <span class="cov10" title="6">key, err := self.genPass.GeneratePassword()
+        <span class="cov8" title="7">key, err := self.genPass.GenerateRandomString(self.cfg.KeycodeLengthDefault)
         if err != nil </span>{
                 <span class="cov1" title="1">return self.cfg.StringEmpty, err
 </span>        }
-        <span class="cov9" title="5">url_check, _ := self.urlStorage.GetURL(ctx, key)
+        <span class="cov7" title="6">url_check, _ := self.urlStorage.GetURL(ctx, key)
         for url_check != self.cfg.StringEmpty </span>{
-                <span class="cov4" title="2">key, err = self.genPass.GeneratePassword()
+                <span class="cov3" title="2">key, err = self.genPass.GenerateRandomString(self.cfg.KeycodeLengthDefault)
                 if err != nil </span>{
                         <span class="cov1" title="1">return self.cfg.StringEmpty, err
 </span>                }
                 <span class="cov1" title="1">url_check, _ = self.urlStorage.GetURL(ctx, key)</span>
         }
 
-        <span class="cov7" title="4">return key, nil</span>
+        <span class="cov6" title="5">return key, nil</span>
 }
 
 // ShortenURL shortens the provided original URL and returns the shortened URL.
-func (self *shortenURLService) CreateShortenLink(ctx context.Context, url string) (string, error) {
-        <span class="cov7" title="4">key, err := self.generateKey(ctx)
+func (self *shortenURLService) CreateShortenLink(ctx context.Context, url string) (*model.ShortenLinkOutput, error) {
+        <span class="cov8" title="7">key, err := self.generateKey(ctx)
         if err != nil </span>{
-                <span class="cov1" title="1">return self.cfg.StringEmpty, err
+                <span class="cov3" title="2">return &amp;model.ShortenLinkOutput{KeyCode: self.cfg.StringEmpty, Message: err.Error()}, err
 </span>        }
 
-        <span class="cov6" title="3">err = self.urlStorage.StoreURL(ctx, key, url)
+        <span class="cov6" title="5">err = self.urlStorage.StoreURL(ctx, key, url)
         if err != nil </span>{
-                <span class="cov1" title="1">return self.cfg.StringEmpty, err
+                <span class="cov1" title="1">return &amp;model.ShortenLinkOutput{KeyCode: self.cfg.StringEmpty, Message: err.Error()}, err
 </span>        }
-        <span class="cov4" title="2">return key, nil</span>
+        <span class="cov6" title="4">return &amp;model.ShortenLinkOutput{KeyCode: key, Message: "Shorten URL generated successfully"}, nil</span>
 }
 </pre>
 		
-		<pre class="file" id="file7" style="display: none">package redis
+		<pre class="file" id="file7" style="display: none">package redis_utils
 
 import (
+        "context"
+        "fmt"
+        exec "os/exec"
+        "strings"
+        "time"
+
         "github.com/redis/go-redis/v9"
 )
 
+var dockerInspect = func() ([]byte, error) {
+        <span class="cov1" title="1">cmd := exec.Command(
+                "docker",
+                "inspect",
+                "-f",
+                "{{.State.Running}}",
+                "redis",
+        )
+        return cmd.Output()
+</span>}
+
 // NewRedisClient creates a new Redis client using the provided environment prefix for configuration.
 func NewRedisClient(envPrefix string) (*redis.Client, error) {
-        <span class="cov10" title="3">cfg, err := newConfig(envPrefix)
+        <span class="cov4" title="2">cfg, err := newConfig(envPrefix)
         if err != nil </span>{
                 <span class="cov1" title="1">return nil, err
 </span>        }
-        <span class="cov6" title="2">rdb := redis.NewClient(&amp;redis.Options{
+
+        <span class="cov1" title="1">rdb := redis.NewClient(&amp;redis.Options{
                 Addr:     cfg.Address,
                 Password: cfg.Password,
                 DB:       cfg.DB,
         })
-        return rdb, nil</span>
+</span>
+        <span class="cov1" title="1">return rdb, nil</span>
+}
+
+func CheckRedisConnection(
+        ctx context.Context,
+        client *redis.Client,
+) error {
+        <span class="cov4" title="2">ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+        defer cancel()
+</span>
+        <span class="cov4" title="2">if err := client.Ping(ctx).Err(); err != nil </span>{
+                <span class="cov1" title="1">return fmt.Errorf("redis connection failed: %w", err)
+</span>        }
+
+        <span class="cov1" title="1">return nil</span>
+}
+
+func IsRedisContainerRunning() bool {
+        <span class="cov10" title="6">output, err := dockerInspect()
+        if err != nil </span>{
+                <span class="cov1" title="1">return false
+</span>        }
+
+        <span class="cov9" title="5">return strings.TrimSpace(string(output)) == "true"</span>
 }
 </pre>
 		

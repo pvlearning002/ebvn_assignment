@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/pvlearning002/ebvn_assignment/internal/api"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
-	"github.com/pvlearning002/ebvn_assignment/pkg/redis"
+	"github.com/pvlearning002/ebvn_assignment/pkg/redis_utils"
 )
 
 // @title Bookmark Management API
@@ -17,7 +17,7 @@ func main() {
 	cfgError := config.CreateNewConfigError()
 	cfgPaths := config.CreateNewConfigPaths()
 	cfgHealthCheck := config.CreateNewConfigHealthCheck()
-	redisClient, err := redis.NewRedisClient(cfg.StringEmpty)
+	redisClient, err := redis_utils.NewRedisClient(cfg.StringEmpty)
 	if err != nil {
 		panic(err)
 	}

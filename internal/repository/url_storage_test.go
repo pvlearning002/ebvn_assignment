@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	config "github.com/pvlearning002/ebvn_assignment/internal/config"
-	"github.com/pvlearning002/ebvn_assignment/pkg/redis"
+	"github.com/pvlearning002/ebvn_assignment/pkg/redis_utils"
 	goredis "github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 )
@@ -23,7 +23,7 @@ func TestURLStorage_ShortenURL(t *testing.T) {
 		{
 			name: "normal case",
 			setupMockRedis: func(t *testing.T) *goredis.Client {
-				return redis.InitMockRedis(t)
+				return redis_utils.InitMockRedis(t)
 			},
 			expectedError: nil,
 			verifyFunc: func(ctx context.Context, r *goredis.Client) {

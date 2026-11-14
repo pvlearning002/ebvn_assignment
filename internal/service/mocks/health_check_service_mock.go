@@ -13,23 +13,23 @@ type HealthCheck struct {
 }
 
 // GenerateHealthCheck provides a mock function with no fields
-func (_m *HealthCheck) GenerateHealthCheck() (*model.HealthCheck, error) {
+func (_m *HealthCheck) GenerateHealthCheck() (*model.HealthCheckOutput, error) {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for GenerateHealthCheck")
 	}
 
-	var r0 *model.HealthCheck
+	var r0 *model.HealthCheckOutput
 	var r1 error
-	if rf, ok := ret.Get(0).(func() (*model.HealthCheck, error)); ok {
+	if rf, ok := ret.Get(0).(func() (*model.HealthCheckOutput, error)); ok {
 		return rf()
 	}
-	if rf, ok := ret.Get(0).(func() *model.HealthCheck); ok {
+	if rf, ok := ret.Get(0).(func() *model.HealthCheckOutput); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.HealthCheck)
+			r0 = ret.Get(0).(*model.HealthCheckOutput)
 		}
 	}
 

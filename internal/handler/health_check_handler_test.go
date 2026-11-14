@@ -21,7 +21,7 @@ type healthCheckMockAdapter struct {
 	cfg  *config.Config
 }
 
-func (a healthCheckMockAdapter) GenerateHealthCheck() (*model.HealthCheck, error) {
+func (a healthCheckMockAdapter) GenerateHealthCheck() (*model.HealthCheckOutput, error) {
 	return a.mock.GenerateHealthCheck()
 }
 
@@ -55,7 +55,7 @@ func TestHealthCheckHandler(t *testing.T) {
 				mockService := &services_mocks.HealthCheck{}
 
 				mockService.On("GenerateHealthCheck").
-					Return(&model.HealthCheck{
+					Return(&model.HealthCheckOutput{
 						Message:     cfgStatus.StatusOK,
 						ServiceName: cfgHealthCheck.BookmarkService,
 						InstanceID:  instanceID,

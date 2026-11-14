@@ -44,6 +44,35 @@ const docTemplate = `{
                 }
             }
         },
+        "/health": {
+            "get": {
+                "description": "GenerateHealthCheck handles the HTTP request for generating a health check.",
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Generate Health Check",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/links/shorten": {
             "post": {
                 "description": "CreateShortenLink handles the HTTP request for creating a shortened URL.",
@@ -64,7 +93,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handler.shortenLinkInput"
+                            "$ref": "#/definitions/model.ShortenLinkInput"
                         }
                     }
                 ],
@@ -101,11 +130,18 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "handler.shortenLinkInput": {
+        "model.ShortenLinkInput": {
             "type": "object",
             "properties": {
+                "expiration_time": {
+                    "type": "integer",
+                    "default": 3600,
+                    "example": 3600
+                },
                 "url": {
-                    "type": "string"
+                    "type": "string",
+                    "default": "https://www.google.com/",
+                    "example": "https://www.google.com/"
                 }
             }
         }

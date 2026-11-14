@@ -57,7 +57,7 @@ func (self *engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // initRoutes initializes the routes for the API engine.
 func (self *engine) initRoutes() {
 	// Initialize gen pass service
-	genPassService := service.NewGenPass(*self.cfg)
+	genPassService := service.NewGenPass(*self.cfg, *self.cfgError)
 	// Initialize gen pass handler
 	genPassHandler := handler.NewGenPass(genPassService, *self.cfg, *self.cfgStatus, *self.cfgError)
 	// Register gen pass route
@@ -73,9 +73,9 @@ func (self *engine) initRoutes() {
 
 	urlStorage := repository.NewURLStorage(self.redisClient, self.cfg)
 	// Initialize shorten URL service
-	shortenURLService := service.NewShortenURLService(urlStorage, genPassService, *self.cfg)
+	shortenURLService := service.NewShortenURLService(urlStorage, genPassService, *self.cfg, *self.cfgError)
 	// Initialize shorten URL handler
-	shortenURLHandler := handler.NewShortenURLHandler(shortenURLService, *self.cfg, *self.cfgError)
+	shortenURLHandler := handler.NewShortenURLHandler(shortenURLService, *self.cfg, *self.cfgError, self.redisClient)
 	// Register shorten URL route
 	self.app.POST(self.cfgPaths.PathPostShortenURL, shortenURLHandler.CreateShortenLink)
 }

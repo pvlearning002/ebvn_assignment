@@ -13,4 +13,4 @@ test:
 	python python_scripts/check_coverage.py --threshold $(COVERAGE_THRESHOLD)
 	go tool cover -html=coverage.out -o coverage.html
 
-swagrun: swag run
+swag-run: swag run

@@ -8,7 +8,7 @@ import (
 
 //go:generate mockery --name=HealthCheck --filename=health_check_mck.go
 type HealthCheck interface {
-	GenerateHealthCheck() (*model.HealthCheck, error)
+	GenerateHealthCheck() (*model.HealthCheckOutput, error)
 }
 
 type healthCheckService struct {
@@ -23,8 +23,8 @@ func NewHealthCheck(cfgStatus config.ConfigStatus, cfgHealthCheck config.ConfigH
 	}
 }
 
-func (self *healthCheckService) GenerateHealthCheck() (*model.HealthCheck, error) {
-	result := &model.HealthCheck{
+func (self *healthCheckService) GenerateHealthCheck() (*model.HealthCheckOutput, error) {
+	result := &model.HealthCheckOutput{
 		Message:     self.cfgStatus.StatusOK,
 		ServiceName: self.cfgHealthCheck.BookmarkService,
 		InstanceID:  uuid.New(),

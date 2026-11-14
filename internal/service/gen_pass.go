@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/google/uuid"
@@ -10,31 +11,46 @@ import (
 // mockery --name GenPass --filename gen_pass_service_mock.go
 // GenPass defines the interface for generating passwords.
 type GenPass interface {
+	GenerateRandomString(length int) (string, error)
 	GeneratePassword() (string, error)
 }
 
 // genPassService is the implementation of the GenPass interface.
 type genPassService struct {
-	cfg config.Config
+	cfg      config.Config
+	cfgError config.ConfigError
 }
 
 // NewGenPass creates a new instance of the genPassService with the provided configuration.
-func NewGenPass(cfg config.Config) GenPass {
+func NewGenPass(cfg config.Config, cfgError config.ConfigError) GenPass {
 	return &genPassService{
-		cfg: cfg,
+		cfg:      cfg,
+		cfgError: cfgError,
 	}
 }
 
-// GeneratePassword generates a random password using UUIDs and returns it as a string.
-func (self *genPassService) GeneratePassword() (string, error) {
+func (self *genPassService) GenerateRandomString(length int) (string, error) {
+	if length <= 0 {
+		return self.cfg.StringEmpty, errors.New(self.cfgError.ErrorLengthZero)
+	}
+
 	result := strings.ReplaceAll(uuid.New().String(), self.cfg.Dash, self.cfg.StringEmpty)
 	pass_len := len(result)
 
-	for pass_len < self.cfg.PasswordLengthDefault {
+	for pass_len < length {
 		result += strings.ReplaceAll(uuid.New().String(), self.cfg.Dash, self.cfg.StringEmpty)
 		pass_len = len(result)
 	}
 
-	result = result[:self.cfg.PasswordLengthDefault]
+	result = result[:length]
+	return result, nil
+}
+
+// GeneratePassword generates a random password using UUIDs and returns it as a string.
+func (self *genPassService) GeneratePassword() (string, error) {
+	result, err := self.GenerateRandomString(self.cfg.PasswordLengthDefault)
+	if err != nil {
+		return self.cfg.StringEmpty, err
+	}
 	return result, nil
 }

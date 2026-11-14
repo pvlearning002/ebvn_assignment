@@ -49,7 +49,7 @@ func TestCreateShortenLinkEndPoint(t *testing.T) {
 				return recorder
 			},
 			expectedStatus:   http.StatusOK,
-			expectedResponse: `"key"`,
+			expectedResponse: `"code"`,
 		},
 		{
 			name: "wrong method case",
