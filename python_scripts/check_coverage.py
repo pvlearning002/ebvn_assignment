@@ -12,8 +12,11 @@ COVERAGE_OUTPUT = Path("coverage.out")
 COVERAGE_EXCLUDE = (
     r"main\.go|api\.go|redis_client_mock\.go|test|docs|_func_demo|config|"
     r"internal/service/mocks/|"
-    r"internal/service/services_mocks/"
+    r"internal/service/services_mocks/|"
+    r"pkg/logger/"
 )
+
+file_path = "github.com/pvlearning002/ebvn_assignment/pkg/logger/level.go"
 
 
 def filter_coverage():

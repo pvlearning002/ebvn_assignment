@@ -326,6 +326,7 @@ import (
 
         "github.com/google/uuid"
         "github.com/pvlearning002/ebvn_assignment/internal/config"
+        "github.com/rs/zerolog/log"
 )
 
 // mockery --name GenPass --filename gen_pass_service_mock.go
@@ -351,7 +352,8 @@ func NewGenPass(cfg config.Config, cfgError config.ConfigError) GenPass {
 
 func (self *genPassService) GenerateRandomString(length int) (string, error) {
         <span class="cov10" title="9">if length &lt;= 0 </span>{
-                <span class="cov5" title="3">return self.cfg.StringEmpty, errors.New(self.cfgError.ErrorLengthZero)
+                <span class="cov5" title="3">log.Error().Msg(self.cfgError.ErrorLengthZero)
+                return self.cfg.StringEmpty, errors.New(self.cfgError.ErrorLengthZero)
 </span>        }
 
         <span class="cov8" title="6">result := strings.ReplaceAll(uuid.New().String(), self.cfg.Dash, self.cfg.StringEmpty)
@@ -370,7 +372,8 @@ func (self *genPassService) GenerateRandomString(length int) (string, error) {
 func (self *genPassService) GeneratePassword() (string, error) {
         <span class="cov3" title="2">result, err := self.GenerateRandomString(self.cfg.PasswordLengthDefault)
         if err != nil </span>{
-                <span class="cov1" title="1">return self.cfg.StringEmpty, err
+                <span class="cov1" title="1">log.Error().Msgf("Error generating random string: %v", err)
+                return self.cfg.StringEmpty, err
 </span>        }
         <span class="cov1" title="1">return result, nil</span>
 }

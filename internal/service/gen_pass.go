@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
+	"github.com/pvlearning002/ebvn_assignment/pkg/utils"
 )
 
 // mockery --name GenPass --filename gen_pass_service_mock.go
@@ -31,6 +32,7 @@ func NewGenPass(cfg config.Config, cfgError config.ConfigError) GenPass {
 
 func (self *genPassService) GenerateRandomString(length int) (string, error) {
 	if length <= 0 {
+		utils.WriteLogError(self.cfgError.ErrorLengthZero)
 		return self.cfg.StringEmpty, errors.New(self.cfgError.ErrorLengthZero)
 	}
 
@@ -50,6 +52,7 @@ func (self *genPassService) GenerateRandomString(length int) (string, error) {
 func (self *genPassService) GeneratePassword() (string, error) {
 	result, err := self.GenerateRandomString(self.cfg.PasswordLengthDefault)
 	if err != nil {
+		utils.WriteLogError(err.Error())
 		return self.cfg.StringEmpty, err
 	}
 	return result, nil

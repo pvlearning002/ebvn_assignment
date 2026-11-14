@@ -7,6 +7,7 @@ import (
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
 	"github.com/pvlearning002/ebvn_assignment/internal/model"
 	"github.com/pvlearning002/ebvn_assignment/internal/service"
+	"github.com/pvlearning002/ebvn_assignment/pkg/utils"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -49,16 +50,19 @@ func NewShortenURLHandler(svc service.ShortenURL, cfg config.Config, cfgError co
 func (self *shortenURLHandler) CreateShortenLink(ctx *gin.Context) {
 	// Implementation for creating a shortened link
 	if err := self.client.Ping(ctx).Err(); err != nil {
+		utils.WriteLogError(err.Error())
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorRedisConnection})
 		return
 	}
 	input := &model.ShortenLinkInput{}
 	if err := ctx.ShouldBindJSON(input); err != nil {
+		utils.WriteLogError(err.Error())
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInvalidInput})
 		return
 	}
 	shortenLinkOutput, err := self.shortenURLService.CreateShortenLink(ctx, input.Url)
 	if err != nil {
+		utils.WriteLogError(err.Error())
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInternalServer})
 		return
 	}
@@ -79,11 +83,13 @@ func (self *shortenURLHandler) CreateShortenLink(ctx *gin.Context) {
 func (self *shortenURLHandler) RedirectToOriginalURL(ctx *gin.Context) {
 	keyCode := ctx.Param(self.cfgParameter.Code)
 	if keyCode == self.cfg.StringEmpty {
+		utils.WriteLogError(self.cfgError.ErrorInvalidCode)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInvalidCode})
 		return
 	}
 	url, err := self.shortenURLService.GetUrlByCode(ctx, keyCode)
 	if err != nil {
+		utils.WriteLogError(err.Error())
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInternalServer})
 		return
 	}

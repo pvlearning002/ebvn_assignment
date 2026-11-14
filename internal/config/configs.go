@@ -15,6 +15,7 @@ type Config struct {
 	StringEmpty           string `default:"" envconfig:"STRING_EMPTY"`
 	StringSpace           string `default:" " envconfig:"STRING_SPACE"`
 	RedisExpiredTime      int    `default:"3600" envconfig:"REDIS_EXPIRED_TIME"`
+	LogLevel              string `default:"info" envconfig:"LOG_LEVEL"`
 }
 
 func NewConfig() (*Config, error) {

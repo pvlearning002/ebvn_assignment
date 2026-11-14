@@ -4,6 +4,7 @@ package main
 import (
 	"github.com/pvlearning002/ebvn_assignment/internal/api"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
+	"github.com/pvlearning002/ebvn_assignment/pkg/logger"
 	"github.com/pvlearning002/ebvn_assignment/pkg/redis_utils"
 )
 
@@ -19,6 +20,7 @@ func main() {
 	cfgPaths := config.CreateNewConfigPaths()
 	cfgHealthCheck := config.CreateNewConfigHealthCheck()
 	cfgParameter := config.CreateNewConfigParameter()
+	logger.SetLogLevel(cfg.LogLevel)
 	redisClient, err := redis_utils.NewRedisClient(cfg.StringEmpty)
 	if err != nil {
 		panic(err)
