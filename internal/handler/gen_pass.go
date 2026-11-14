@@ -31,7 +31,13 @@ func NewGenPass(genPassSvc service.GenPass, cfg config.Config, cfgStatus config.
 	}
 }
 
-// GeneratePassword handles the HTTP request for generating a password.
+// @Summary Generate Random Password
+// @Description GeneratePassword handles the HTTP request for generating a password.
+// @Tags Password
+// @Produces application/json
+// @Success 200 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /genpass [get]
 func (self *genPassHandler) GeneratePassword(c *gin.Context) {
 	pwd, err := self.genPassSvc.GeneratePassword()
 	if err != nil || len(pwd) != self.cfg.PasswordLengthDefault {
