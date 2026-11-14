@@ -38,8 +38,8 @@ paths:
       - Password
   /health:
     get:
-      description: GenerateHealthCheck handles the HTTP request for generating a health
-        check.
+      description: Generate Health Check handles the HTTP request for generating a
+        health check.
       responses:
         "200":
           description: OK
@@ -56,6 +56,44 @@ paths:
       summary: Generate Health Check
       tags:
       - Health
+  /v1/links/redirect/{code}:
+    get:
+      description: RedirectToOriginalURL handles the HTTP request for redirecting
+        to the original URL based on the provided key code.
+      parameters:
+      - description: Key Code
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Redirects to the original URL
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Redirect to Original URL
+      tags:
+      - link
   /v1/links/shorten:
     post:
       consumes:

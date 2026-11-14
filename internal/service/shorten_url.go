@@ -11,6 +11,7 @@ import (
 // ShortenURL defines the interface for shortening URLs.
 type ShortenURL interface {
 	CreateShortenLink(ctx context.Context, url string) (*model.ShortenLinkOutput, error)
+	GetUrlByCode(ctx context.Context, keyCode string) (string, error)
 }
 
 // shortenURLService is the implementation of the ShortenURLService interface.
@@ -60,4 +61,13 @@ func (self *shortenURLService) CreateShortenLink(ctx context.Context, url string
 		return &model.ShortenLinkOutput{KeyCode: self.cfg.StringEmpty, Message: err.Error()}, err
 	}
 	return &model.ShortenLinkOutput{KeyCode: key, Message: "Shorten URL generated successfully"}, nil
+}
+
+// ShortenURL shortens the provided original URL and returns the shortened URL.
+func (self *shortenURLService) GetUrlByCode(ctx context.Context, keyCode string) (string, error) {
+	url, err := self.urlStorage.GetURL(ctx, keyCode)
+	if err != nil {
+		return self.cfg.StringEmpty, err
+	}
+	return url, nil
 }

@@ -339,3 +339,71 @@ func TestCreateShortenLink(t *testing.T) {
 		mockStorage.AssertExpectations(t)
 	})
 }
+
+func TestGetUrlByCode(t *testing.T) {
+	cfg := config.Config{
+		StringEmpty: "",
+	}
+	testCases := []struct {
+		name          string
+		keyCode       string
+		mockURL       string
+		mockError     error
+		expectedURL   string
+		expectedError error
+	}{
+		{
+			name:        "normal case",
+			keyCode:     "abc123",
+			mockURL:     "https://www.google.com",
+			mockError:   nil,
+			expectedURL: "https://www.google.com",
+		},
+		{
+			name:          "error when getting URL",
+			keyCode:       "abc123",
+			mockURL:       "",
+			mockError:     errors.New("redis connection error"),
+			expectedURL:   cfg.StringEmpty,
+			expectedError: errors.New("redis connection error"),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockStorage := new(MockURLStorage)
+
+			mockStorage.On(
+				"GetURL",
+				mock.Anything,
+				tc.keyCode,
+			).Return(tc.mockURL, tc.mockError).Once()
+
+			service := &shortenURLService{
+				urlStorage: mockStorage,
+				cfg: config.Config{
+					StringEmpty: "",
+				},
+			}
+
+			actualURL, err := service.GetUrlByCode(
+				context.Background(),
+				tc.keyCode,
+			)
+
+			assert.Equal(t, tc.expectedURL, actualURL)
+
+			if tc.expectedError != nil {
+				assert.EqualError(
+					t,
+					err,
+					tc.expectedError.Error(),
+				)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			mockStorage.AssertExpectations(t)
+		})
+	}
+}

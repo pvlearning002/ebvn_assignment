@@ -16,6 +16,7 @@ func TestGenPassEndPoint(t *testing.T) {
 	cfg := *config.CreateNewConfig()
 	cfgStatus := *config.CreateNewConfigStatus()
 	cfgError := *config.CreateNewConfigError()
+	cfgParameter := *config.CreateNewConfigParameter()
 	cfgPaths := *config.CreateNewConfigPaths()
 	cfgHealthCheck := *config.CreateNewConfigHealthCheck()
 	redisClient := redis.NewClient(&redis.Options{Addr: "REDIS"})
@@ -51,7 +52,7 @@ func TestGenPassEndPoint(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			testAPI := api.NewEngine(&cfg, &cfgStatus, &cfgError, &cfgPaths, &cfgHealthCheck, redisClient)
+			testAPI := api.NewEngine(&cfg, &cfgStatus, &cfgError, &cfgPaths, &cfgHealthCheck, &cfgParameter, redisClient)
 			recorder := tc.setupTestHTTP(testAPI)
 			assert.Equal(t, tc.expectedStatus, recorder.Code)
 			assert.Contains(t, recorder.Body.String(), tc.expectedResponse)

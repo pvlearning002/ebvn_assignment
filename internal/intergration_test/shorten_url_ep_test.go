@@ -19,6 +19,7 @@ func TestCreateShortenLinkEndPoint(t *testing.T) {
 	cfgError := *config.CreateNewConfigError()
 	cfgPaths := *config.CreateNewConfigPaths()
 	cfgHealthCheck := *config.CreateNewConfigHealthCheck()
+	cfgParameter := *config.CreateNewConfigParameter()
 
 	miniRedis := miniredis.RunT(t)
 	redisClient := redis.NewClient(&redis.Options{
@@ -78,6 +79,7 @@ func TestCreateShortenLinkEndPoint(t *testing.T) {
 				&cfgError,
 				&cfgPaths,
 				&cfgHealthCheck,
+				&cfgParameter,
 				redisClient,
 			)
 

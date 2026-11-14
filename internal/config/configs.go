@@ -63,6 +63,7 @@ type ConfigPaths struct {
 	PathGetGenPass     string `default:"/genpass" envconfig:"PATH_GET_GEN_PASS"`
 	PathGetHealthCheck string `default:"/health" envconfig:"PATH_GET_HEALTH_CHECK"`
 	PathPostShortenURL string `default:"/v1/links/shorten" envconfig:"PATH_POST_SHORTEN_URL"`
+	PathGetURL         string `default:"/v1/links/redirect/:code" envconfig:"PATH_GET_URL"`
 }
 
 func NewConfigPaths() (*ConfigPaths, error) {
@@ -90,6 +91,8 @@ type ConfigError struct {
 	ErrorRedisConnection string `default:"Redis connection error" envconfig:"ERROR_REDIS_CONNECTION"`
 	ErrorNotFound        string `default:"Not Found" envconfig:"ERROR_NOT_FOUND"`
 	ErrorLengthZero      string `default:"Length of string must be greater than 0" envconfig:"ERROR_LENGTH_ZERO"`
+	ErrorInvalidCode     string `default:"Invalid code" envconfig:"ERROR_INVALID_CODE"`
+	ErrorUrlNotFound     string `default:"URL not found" envconfig:"ERROR_URL_NOT_FOUND"`
 }
 
 func NewConfigError() (*ConfigError, error) {
@@ -125,6 +128,28 @@ func NewConfigHealthCheck() (*ConfigHealthCheck, error) {
 
 func CreateNewConfigHealthCheck() *ConfigHealthCheck {
 	cfg, err := NewConfigHealthCheck()
+	if err != nil {
+		panic(err)
+	}
+	return cfg
+}
+
+/* Parameter Config */
+type ConfigParameter struct {
+	Code string `default:"code" envconfig:"CODE"`
+}
+
+func NewConfigParameter() (*ConfigParameter, error) {
+	cfg := &ConfigParameter{}
+	err := envconfig.Process("config_parameter", cfg)
+	if err != nil {
+		return nil, err
+	}
+	return cfg, nil
+}
+
+func CreateNewConfigParameter() *ConfigParameter {
+	cfg, err := NewConfigParameter()
 	if err != nil {
 		panic(err)
 	}

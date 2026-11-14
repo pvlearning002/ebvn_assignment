@@ -27,10 +27,11 @@ type engine struct {
 	cfgError       *config.ConfigError
 	cfgPaths       *config.ConfigPaths
 	cfgHealthCheck *config.ConfigHealthCheck
+	cfgParameter   *config.ConfigParameter
 	redisClient    *redis.Client
 }
 
-func NewEngine(cfg *config.Config, cfgStatus *config.ConfigStatus, cfgError *config.ConfigError, cfgPaths *config.ConfigPaths, cfgHealthCheck *config.ConfigHealthCheck, redisClient *redis.Client) Engine {
+func NewEngine(cfg *config.Config, cfgStatus *config.ConfigStatus, cfgError *config.ConfigError, cfgPaths *config.ConfigPaths, cfgHealthCheck *config.ConfigHealthCheck, cfgParameter *config.ConfigParameter, redisClient *redis.Client) Engine {
 	app := &engine{
 		app:            gin.Default(),
 		cfg:            cfg,
@@ -38,6 +39,7 @@ func NewEngine(cfg *config.Config, cfgStatus *config.ConfigStatus, cfgError *con
 		cfgError:       cfgError,
 		cfgPaths:       cfgPaths,
 		cfgHealthCheck: cfgHealthCheck,
+		cfgParameter:   cfgParameter,
 		redisClient:    redisClient,
 	}
 	app.initRoutes()
@@ -75,7 +77,8 @@ func (self *engine) initRoutes() {
 	// Initialize shorten URL service
 	shortenURLService := service.NewShortenURLService(urlStorage, genPassService, *self.cfg, *self.cfgError)
 	// Initialize shorten URL handler
-	shortenURLHandler := handler.NewShortenURLHandler(shortenURLService, *self.cfg, *self.cfgError, self.redisClient)
+	shortenURLHandler := handler.NewShortenURLHandler(shortenURLService, *self.cfg, *self.cfgError, *self.cfgParameter, self.redisClient)
 	// Register shorten URL route
 	self.app.POST(self.cfgPaths.PathPostShortenURL, shortenURLHandler.CreateShortenLink)
+	self.app.GET(self.cfgPaths.PathGetURL, shortenURLHandler.RedirectToOriginalURL)
 }

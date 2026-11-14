@@ -22,6 +22,7 @@ import (
 // MockShortenURL implements service.ShortenURL.
 type MockShortenURL struct {
 	mock.Mock
+	service.ShortenURL
 }
 
 func (m *MockShortenURL) CreateShortenLink(
@@ -75,7 +76,7 @@ func createTestHandler(
 		ErrorInternalServer:  "Internal server error",
 	}
 
-	return NewShortenURLHandler(svc, cfg, cfgError, client)
+	return NewShortenURLHandler(svc, cfg, cfgError, config.ConfigParameter{}, client)
 }
 
 // TestCreateShortenLink tests CreateShortenLink.
@@ -206,4 +207,119 @@ func TestCreateShortenLink(t *testing.T) {
 
 		mockService.AssertExpectations(t)
 	})
+}
+
+type MockShortenURLService struct {
+	mock.Mock
+	service.ShortenURL
+}
+
+func (m *MockShortenURLService) GetUrlByCode(
+	ctx context.Context,
+	keyCode string,
+) (string, error) {
+	args := m.Called(ctx, keyCode)
+	return args.String(0), args.Error(1)
+}
+
+func TestRedirectToOriginalURL(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	testCases := []struct {
+		name           string
+		keyCode        string
+		mockURL        string
+		mockError      error
+		expectedStatus int
+		expectedURL    string
+		shouldCallMock bool
+	}{
+		{
+			name:           "empty key code",
+			keyCode:        "",
+			expectedStatus: http.StatusBadRequest,
+			shouldCallMock: false,
+		},
+		{
+			name:           "service returns error",
+			keyCode:        "abc123",
+			mockError:      errors.New("redis connection error"),
+			expectedStatus: http.StatusInternalServerError,
+			shouldCallMock: true,
+		},
+		{
+			name:           "URL not found",
+			keyCode:        "abc123",
+			mockURL:        "",
+			expectedStatus: http.StatusNotFound,
+			shouldCallMock: true,
+		},
+		{
+			name:           "redirect successfully",
+			keyCode:        "abc123",
+			mockURL:        "https://www.google.com",
+			expectedStatus: http.StatusMovedPermanently,
+			expectedURL:    "https://www.google.com",
+			shouldCallMock: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockService := new(MockShortenURLService)
+
+			if tc.shouldCallMock {
+				mockService.On(
+					"GetUrlByCode",
+					mock.Anything,
+					tc.keyCode,
+				).Return(tc.mockURL, tc.mockError).Once()
+			}
+
+			cfg := *config.CreateNewConfig()
+			cfgParameter := *config.CreateNewConfigParameter()
+			cfgError := *config.CreateNewConfigError()
+
+			handler := &shortenURLHandler{
+				shortenURLService: mockService,
+				cfg:               cfg,
+				cfgParameter:      cfgParameter,
+				cfgError:          cfgError,
+			}
+
+			router := gin.New()
+
+			if tc.keyCode == "" {
+				router.GET("/", func(ctx *gin.Context) {
+					handler.RedirectToOriginalURL(ctx)
+				})
+			} else {
+				router.GET("/:code", func(ctx *gin.Context) {
+					handler.RedirectToOriginalURL(ctx)
+				})
+			}
+
+			request := httptest.NewRequest(
+				http.MethodGet,
+				"/"+tc.keyCode,
+				nil,
+			)
+
+			recorder := httptest.NewRecorder()
+
+			router.ServeHTTP(recorder, request)
+
+			assert.Equal(t, tc.expectedStatus, recorder.Code)
+
+			if tc.expectedURL != "" {
+				assert.Equal(
+					t,
+					tc.expectedURL,
+					recorder.Header().Get("Location"),
+				)
+			}
+
+			mockService.AssertExpectations(t)
+		})
+	}
 }

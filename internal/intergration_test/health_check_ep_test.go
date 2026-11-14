@@ -20,6 +20,7 @@ func TestHealthCheckEndPoint(t *testing.T) {
 	cfgError := *config.CreateNewConfigError()
 	cfgPaths := *config.CreateNewConfigPaths()
 	cfgHealthCheck := *config.CreateNewConfigHealthCheck()
+	cfgParameter := *config.CreateNewConfigParameter()
 	redisClient := redis.NewClient(&redis.Options{Addr: "REDIS"})
 	testCases := []struct {
 		name             string
@@ -53,7 +54,7 @@ func TestHealthCheckEndPoint(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			testAPI := api.NewEngine(&cfg, &cfgStatus, &cfgError, &cfgPaths, &cfgHealthCheck, redisClient)
+			testAPI := api.NewEngine(&cfg, &cfgStatus, &cfgError, &cfgPaths, &cfgHealthCheck, &cfgParameter, redisClient)
 			recorder := tc.setupTestHTTP(testAPI)
 			assert.Equal(t, tc.expectedStatus, recorder.Code)
 			assert.Contains(t, recorder.Body.String(), tc.expectedResponse)
