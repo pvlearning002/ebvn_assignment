@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
 	"github.com/pvlearning002/ebvn_assignment/internal/service"
-	"github.com/pvlearning002/ebvn_assignment/pkg/utils"
+	"github.com/pvlearning002/ebvn_assignment/pkg/utils_log"
 )
 
 type HealthCheck interface {
@@ -33,7 +33,7 @@ func NewHealthCheck(svc service.HealthCheck, cfg config.Config, cfgError config.
 func (self *healthCheckHandler) GenerateHealthCheck(c *gin.Context) {
 	modelHealthCheck, err := self.svc.GenerateHealthCheck()
 	if err != nil {
-		utils.WriteLogError(err.Error())
+		utils_log.WriteLogError(err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInternalServer})
 		return
 	}

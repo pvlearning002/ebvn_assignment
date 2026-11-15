@@ -1,4 +1,4 @@
-package utils
+package utils_log
 
 import (
 	"runtime"
@@ -6,6 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Added more function path into log
 func BuildLogMessage(message string, skip ...int) string {
 	if message == "" {
 		message = "null"
