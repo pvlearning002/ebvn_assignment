@@ -7,6 +7,7 @@ import (
 
 	"github.com/pvlearning002/ebvn_assignment/internal/api"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,6 +18,7 @@ func TestGenPassEndPoint(t *testing.T) {
 	cfgError := *config.CreateNewConfigError()
 	cfgPaths := *config.CreateNewConfigPaths()
 	cfgHealthCheck := *config.CreateNewConfigHealthCheck()
+	redisClient := redis.NewClient(&redis.Options{Addr: "REDIS"})
 	testCases := []struct {
 		name             string
 		setupTestHTTP    func(api api.Engine) *httptest.ResponseRecorder
@@ -49,7 +51,7 @@ func TestGenPassEndPoint(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			testAPI := api.NewEngine(&cfg, &cfgStatus, &cfgError, &cfgPaths, &cfgHealthCheck)
+			testAPI := api.NewEngine(&cfg, &cfgStatus, &cfgError, &cfgPaths, &cfgHealthCheck, redisClient)
 			recorder := tc.setupTestHTTP(testAPI)
 			assert.Equal(t, tc.expectedStatus, recorder.Code)
 			assert.Contains(t, recorder.Body.String(), tc.expectedResponse)

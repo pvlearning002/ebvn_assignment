@@ -1,0 +1,96 @@
+basePath: /
+definitions:
+  model.ShortenLinkInput:
+    properties:
+      expiration_time:
+        default: 3600
+        example: 3600
+        type: integer
+      url:
+        default: https://www.google.com/
+        example: https://www.google.com/
+        type: string
+    type: object
+info:
+  contact: {}
+  description: This is a sample server for managing bookmarks.
+  title: Bookmark Management API
+  version: 1.0.0
+paths:
+  /genpass:
+    get:
+      description: GeneratePassword handles the HTTP request for generating a password.
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Generate Random Password
+      tags:
+      - Password
+  /health:
+    get:
+      description: GenerateHealthCheck handles the HTTP request for generating a health
+        check.
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Generate Health Check
+      tags:
+      - Health
+  /v1/links/shorten:
+    post:
+      consumes:
+      - application/json
+      description: CreateShortenLink handles the HTTP request for creating a shortened
+        URL.
+      parameters:
+      - description: Input required
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/model.ShortenLinkInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create Shortened URL
+      tags:
+      - link
+swagger: "2.0"

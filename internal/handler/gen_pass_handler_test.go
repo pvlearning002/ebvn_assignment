@@ -8,9 +8,17 @@ import (
 
 	gin "github.com/gin-gonic/gin"
 	config "github.com/pvlearning002/ebvn_assignment/internal/config"
-	mocks "github.com/pvlearning002/ebvn_assignment/internal/service/services_mocks"
+	mocks "github.com/pvlearning002/ebvn_assignment/internal/service/mocks"
 	assert "github.com/stretchr/testify/assert"
 )
+
+type genPassTestAdapter struct {
+	*mocks.GenPass
+}
+
+func (m *genPassTestAdapter) GenerateRandomString(length int) (string, error) {
+	return "", nil
+}
 
 func TestGenPassHandler_GeneratePassword(t *testing.T) {
 	// Test implementation
@@ -64,7 +72,7 @@ func TestGenPassHandler_GeneratePassword(t *testing.T) {
 			ctx, _ := gin.CreateTestContext(recorder)
 			tc.setupRequest(ctx)
 			mockSvc := tc.setupMockService(ctx)
-			handler := NewGenPass(mockSvc, cfg, cfgStatus, cfgError)
+			handler := NewGenPass(&genPassTestAdapter{GenPass: mockSvc}, cfg, cfgStatus, cfgError)
 			handler.GeneratePassword(ctx)
 			assert.Equal(t, tc.expectedStatus, recorder.Code)
 			assert.Equal(t, tc.expectedResponse, recorder.Body.String())
