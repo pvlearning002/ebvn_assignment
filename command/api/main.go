@@ -5,7 +5,7 @@ import (
 	"github.com/pvlearning002/ebvn_assignment/internal/api"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
 	"github.com/pvlearning002/ebvn_assignment/pkg/logger"
-	"github.com/pvlearning002/ebvn_assignment/pkg/redis_utils"
+	redis_utils "github.com/pvlearning002/ebvn_assignment/pkg/utils/utils_redis"
 )
 
 // @title Bookmark Management API

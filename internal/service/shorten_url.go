@@ -6,7 +6,7 @@ import (
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
 	"github.com/pvlearning002/ebvn_assignment/internal/model"
 	"github.com/pvlearning002/ebvn_assignment/internal/repository"
-	"github.com/pvlearning002/ebvn_assignment/pkg/utils_log"
+	"github.com/pvlearning002/ebvn_assignment/pkg/utils/utils_log"
 )
 
 // ShortenURL defines the interface for shortening URLs.

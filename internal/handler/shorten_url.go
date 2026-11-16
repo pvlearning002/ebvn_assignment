@@ -7,7 +7,7 @@ import (
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
 	"github.com/pvlearning002/ebvn_assignment/internal/model"
 	"github.com/pvlearning002/ebvn_assignment/internal/service"
-	"github.com/pvlearning002/ebvn_assignment/pkg/utils_log"
+	"github.com/pvlearning002/ebvn_assignment/pkg/utils/utils_log"
 	"github.com/redis/go-redis/v9"
 )
 

@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
 	"github.com/pvlearning002/ebvn_assignment/internal/service"
-	"github.com/pvlearning002/ebvn_assignment/pkg/utils_log"
+	"github.com/pvlearning002/ebvn_assignment/pkg/utils/utils_log"
 )
 
 // GenPass defines the interface for handling password generation requests.

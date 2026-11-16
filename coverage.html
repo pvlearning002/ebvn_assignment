@@ -100,7 +100,7 @@ import (
         "github.com/gin-gonic/gin"
         "github.com/pvlearning002/ebvn_assignment/internal/config"
         "github.com/pvlearning002/ebvn_assignment/internal/service"
-        "github.com/pvlearning002/ebvn_assignment/pkg/utils"
+        "github.com/pvlearning002/ebvn_assignment/pkg/utils_log"
 )
 
 // GenPass defines the interface for handling password generation requests.
@@ -137,7 +137,7 @@ func (self *genPassHandler) GeneratePassword(c *gin.Context) {
         <span class="cov5" title="3">pwd, err := self.genPassSvc.GeneratePassword()
         if err != nil || len(pwd) != self.cfg.PasswordLengthDefault </span>{
                 <span class="cov1" title="1">if err != nil </span>{
-                        <span class="cov1" title="1">utils.WriteLogError(err.Error())
+                        <span class="cov1" title="1">utils_log.WriteLogError(err.Error())
 </span>                }
                 <span class="cov1" title="1">c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{self.cfgStatus.StatusOK: self.cfgError.ErrorInternalServer})
                 return</span>
@@ -154,7 +154,7 @@ import (
         "github.com/gin-gonic/gin"
         "github.com/pvlearning002/ebvn_assignment/internal/config"
         "github.com/pvlearning002/ebvn_assignment/internal/service"
-        "github.com/pvlearning002/ebvn_assignment/pkg/utils"
+        "github.com/pvlearning002/ebvn_assignment/pkg/utils_log"
 )
 
 type HealthCheck interface {
@@ -181,7 +181,7 @@ func NewHealthCheck(svc service.HealthCheck, cfg config.Config, cfgError config.
 func (self *healthCheckHandler) GenerateHealthCheck(c *gin.Context) {
         <span class="cov5" title="3">modelHealthCheck, err := self.svc.GenerateHealthCheck()
         if err != nil </span>{
-                <span class="cov1" title="1">utils.WriteLogError(err.Error())
+                <span class="cov1" title="1">utils_log.WriteLogError(err.Error())
                 c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInternalServer})
                 return
 </span>        }
@@ -198,7 +198,7 @@ import (
         "github.com/pvlearning002/ebvn_assignment/internal/config"
         "github.com/pvlearning002/ebvn_assignment/internal/model"
         "github.com/pvlearning002/ebvn_assignment/internal/service"
-        "github.com/pvlearning002/ebvn_assignment/pkg/utils"
+        "github.com/pvlearning002/ebvn_assignment/pkg/utils_log"
         "github.com/redis/go-redis/v9"
 )
 
@@ -241,19 +241,19 @@ func NewShortenURLHandler(svc service.ShortenURL, cfg config.Config, cfgError co
 func (self *shortenURLHandler) CreateShortenLink(ctx *gin.Context) {
         // Implementation for creating a shortened link
         <span class="cov7" title="5">if err := self.client.Ping(ctx).Err(); err != nil </span>{
-                <span class="cov1" title="1">utils.WriteLogError(err.Error())
+                <span class="cov1" title="1">utils_log.WriteLogError(err.Error())
                 ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorRedisConnection})
                 return
 </span>        }
         <span class="cov6" title="4">input := &amp;model.ShortenLinkInput{}
         if err := ctx.ShouldBindJSON(input); err != nil </span>{
-                <span class="cov1" title="1">utils.WriteLogError(err.Error())
+                <span class="cov1" title="1">utils_log.WriteLogError(err.Error())
                 ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInvalidInput})
                 return
 </span>        }
         <span class="cov5" title="3">shortenLinkOutput, err := self.shortenURLService.CreateShortenLink(ctx, input.Url)
         if err != nil </span>{
-                <span class="cov1" title="1">utils.WriteLogError(err.Error())
+                <span class="cov1" title="1">utils_log.WriteLogError(err.Error())
                 ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInternalServer})
                 return
 </span>        }
@@ -274,13 +274,13 @@ func (self *shortenURLHandler) CreateShortenLink(ctx *gin.Context) {
 func (self *shortenURLHandler) RedirectToOriginalURL(ctx *gin.Context) {
         <span class="cov6" title="4">keyCode := ctx.Param(self.cfgParameter.Code)
         if keyCode == self.cfg.StringEmpty </span>{
-                <span class="cov1" title="1">utils.WriteLogError(self.cfgError.ErrorInvalidCode)
+                <span class="cov1" title="1">utils_log.WriteLogError(self.cfgError.ErrorInvalidCode)
                 ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInvalidCode})
                 return
 </span>        }
         <span class="cov5" title="3">url, err := self.shortenURLService.GetUrlByCode(ctx, keyCode)
         if err != nil </span>{
-                <span class="cov1" title="1">utils.WriteLogError(err.Error())
+                <span class="cov1" title="1">utils_log.WriteLogError(err.Error())
                 ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInternalServer})
                 return
 </span>        }
@@ -338,7 +338,7 @@ import (
 
         "github.com/google/uuid"
         "github.com/pvlearning002/ebvn_assignment/internal/config"
-        "github.com/pvlearning002/ebvn_assignment/pkg/utils"
+        "github.com/pvlearning002/ebvn_assignment/pkg/utils_log"
 )
 
 // mockery --name GenPass --filename gen_pass_service_mock.go
@@ -364,7 +364,7 @@ func NewGenPass(cfg config.Config, cfgError config.ConfigError) GenPass {
 
 func (self *genPassService) GenerateRandomString(length int) (string, error) {
         <span class="cov10" title="9">if length &lt;= 0 </span>{
-                <span class="cov5" title="3">utils.WriteLogError(self.cfgError.ErrorLengthZero)
+                <span class="cov5" title="3">utils_log.WriteLogError(self.cfgError.ErrorLengthZero)
                 return self.cfg.StringEmpty, errors.New(self.cfgError.ErrorLengthZero)
 </span>        }
 
@@ -384,7 +384,7 @@ func (self *genPassService) GenerateRandomString(length int) (string, error) {
 func (self *genPassService) GeneratePassword() (string, error) {
         <span class="cov3" title="2">result, err := self.GenerateRandomString(self.cfg.PasswordLengthDefault)
         if err != nil </span>{
-                <span class="cov1" title="1">utils.WriteLogError(err.Error())
+                <span class="cov1" title="1">utils_log.WriteLogError(err.Error())
                 return self.cfg.StringEmpty, err
 </span>        }
         <span class="cov1" title="1">return result, nil</span>
@@ -434,7 +434,7 @@ import (
         "github.com/pvlearning002/ebvn_assignment/internal/config"
         "github.com/pvlearning002/ebvn_assignment/internal/model"
         "github.com/pvlearning002/ebvn_assignment/internal/repository"
-        "github.com/pvlearning002/ebvn_assignment/pkg/utils"
+        "github.com/pvlearning002/ebvn_assignment/pkg/utils_log"
 )
 
 // ShortenURL defines the interface for shortening URLs.
@@ -464,14 +464,14 @@ func NewShortenURLService(urlStorage repository.URLStorage, genPass GenPass, cfg
 func (self *shortenURLService) generateKey(ctx context.Context) (string, error) {
         <span class="cov8" title="7">key, err := self.genPass.GenerateRandomString(self.cfg.KeycodeLengthDefault)
         if err != nil </span>{
-                <span class="cov1" title="1">utils.WriteLogError(err.Error())
+                <span class="cov1" title="1">utils_log.WriteLogError(err.Error())
                 return self.cfg.StringEmpty, err
 </span>        }
         <span class="cov7" title="6">url_check, _ := self.urlStorage.GetURL(ctx, key)
         for url_check != self.cfg.StringEmpty </span>{
                 <span class="cov3" title="2">key, err = self.genPass.GenerateRandomString(self.cfg.KeycodeLengthDefault)
                 if err != nil </span>{
-                        <span class="cov1" title="1">utils.WriteLogError(err.Error())
+                        <span class="cov1" title="1">utils_log.WriteLogError(err.Error())
                         return self.cfg.StringEmpty, err
 </span>                }
                 <span class="cov1" title="1">url_check, _ = self.urlStorage.GetURL(ctx, key)</span>
@@ -484,13 +484,13 @@ func (self *shortenURLService) generateKey(ctx context.Context) (string, error) 
 func (self *shortenURLService) CreateShortenLink(ctx context.Context, url string) (*model.ShortenLinkOutput, error) {
         <span class="cov8" title="7">key, err := self.generateKey(ctx)
         if err != nil </span>{
-                <span class="cov3" title="2">utils.WriteLogError(err.Error())
+                <span class="cov3" title="2">utils_log.WriteLogError(err.Error())
                 return &amp;model.ShortenLinkOutput{KeyCode: self.cfg.StringEmpty, Message: err.Error()}, err
 </span>        }
 
         <span class="cov6" title="5">err = self.urlStorage.StoreURL(ctx, key, url)
         if err != nil </span>{
-                <span class="cov1" title="1">utils.WriteLogError(err.Error())
+                <span class="cov1" title="1">utils_log.WriteLogError(err.Error())
                 return &amp;model.ShortenLinkOutput{KeyCode: self.cfg.StringEmpty, Message: err.Error()}, err
 </span>        }
         <span class="cov6" title="4">return &amp;model.ShortenLinkOutput{KeyCode: key, Message: "Shorten URL generated successfully"}, nil</span>
@@ -500,7 +500,7 @@ func (self *shortenURLService) CreateShortenLink(ctx context.Context, url string
 func (self *shortenURLService) GetUrlByCode(ctx context.Context, keyCode string) (string, error) {
         <span class="cov3" title="2">url, err := self.urlStorage.GetURL(ctx, keyCode)
         if err != nil </span>{
-                <span class="cov1" title="1">utils.WriteLogError(err.Error())
+                <span class="cov1" title="1">utils_log.WriteLogError(err.Error())
                 return self.cfg.StringEmpty, err
 </span>        }
         <span class="cov1" title="1">return url, nil</span>

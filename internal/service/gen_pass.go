@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
-	"github.com/pvlearning002/ebvn_assignment/pkg/utils_log"
+	"github.com/pvlearning002/ebvn_assignment/pkg/utils/utils_log"
 )
 
 // mockery --name GenPass --filename gen_pass_service_mock.go
