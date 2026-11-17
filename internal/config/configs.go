@@ -1,6 +1,8 @@
 package config
 
-import "github.com/kelseyhightower/envconfig"
+import (
+	"github.com/kelseyhightower/envconfig"
+)
 
 /* General Config */
 
@@ -16,6 +18,7 @@ type Config struct {
 	StringSpace           string `default:" " envconfig:"STRING_SPACE"`
 	RedisExpiredTime      int    `default:"3600" envconfig:"REDIS_EXPIRED_TIME"`
 	LogLevel              string `default:"info" envconfig:"LOG_LEVEL"`
+	InstanceID            string `default:"" envconfig:"INSTANCE_ID"`
 }
 
 func NewConfig() (*Config, error) {

@@ -2,6 +2,8 @@ package main
 
 // cspell:ignore pvlearning ebvn
 import (
+	"uuid"
+
 	"github.com/pvlearning002/ebvn_assignment/internal/api"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
 	"github.com/pvlearning002/ebvn_assignment/pkg/logger"
@@ -20,7 +22,13 @@ func main() {
 	cfgPaths := config.CreateNewConfigPaths()
 	cfgHealthCheck := config.CreateNewConfigHealthCheck()
 	cfgParameter := config.CreateNewConfigParameter()
+
+	if cfg.InstanceID == cfg.StringEmpty {
+		cfg.InstanceID = uuid.New().String()
+	}
+
 	logger.SetLogLevel(cfg.LogLevel)
+
 	redisClient, err := redis_utils.NewRedisClient(cfg.StringEmpty)
 	if err != nil {
 		panic(err)

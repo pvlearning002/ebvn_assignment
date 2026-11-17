@@ -12,22 +12,37 @@ type HealthCheck interface {
 }
 
 type healthCheckService struct {
+	cfg            config.Config
 	cfgStatus      config.ConfigStatus
 	cfgHealthCheck config.ConfigHealthCheck
 }
 
-func NewHealthCheck(cfgStatus config.ConfigStatus, cfgHealthCheck config.ConfigHealthCheck) HealthCheck {
+func NewHealthCheck(cfg config.Config, cfgStatus config.ConfigStatus, cfgHealthCheck config.ConfigHealthCheck) HealthCheck {
 	return &healthCheckService{
+		cfg:            cfg,
 		cfgStatus:      cfgStatus,
 		cfgHealthCheck: cfgHealthCheck,
 	}
 }
 
+func (self *healthCheckService) parseUUIDfromString(uuidValue string) (uuid.UUID, error) {
+	result, err := uuid.Parse(uuidValue)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return result, nil
+}
+
 func (self *healthCheckService) GenerateHealthCheck() (*model.HealthCheckOutput, error) {
+	instanceID, err := self.parseUUIDfromString(self.cfg.InstanceID)
+	if err != nil {
+		return nil, err
+	}
+
 	result := &model.HealthCheckOutput{
 		Message:     self.cfgStatus.StatusOK,
 		ServiceName: self.cfgHealthCheck.BookmarkService,
-		InstanceID:  uuid.New(),
+		InstanceID:  instanceID,
 	}
 	return result, nil
 }

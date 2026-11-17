@@ -24,4 +24,7 @@ test:
 		echo "SUCCESS: Coverage ($$total%) meets threshold ($(COVERAGE_THRESHOLD)%)"; \
 	fi
 
+docker-build:
+	docker build -t ebvn_test:latest .
+
 swag-run: swag run

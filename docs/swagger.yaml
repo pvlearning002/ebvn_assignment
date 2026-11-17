@@ -5,11 +5,15 @@ definitions:
       expiration_time:
         default: 3600
         example: 3600
+        minimum: 500
         type: integer
       url:
         default: https://www.google.com/
         example: https://www.google.com/
         type: string
+    required:
+    - expiration_time
+    - url
     type: object
 info:
   contact: {}

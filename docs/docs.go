@@ -188,10 +188,15 @@ const docTemplate = `{
     "definitions": {
         "model.ShortenLinkInput": {
             "type": "object",
+            "required": [
+                "expiration_time",
+                "url"
+            ],
             "properties": {
                 "expiration_time": {
                     "type": "integer",
                     "default": 3600,
+                    "minimum": 500,
                     "example": 3600
                 },
                 "url": {

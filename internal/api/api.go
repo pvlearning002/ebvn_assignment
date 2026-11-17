@@ -67,7 +67,7 @@ func (self *engine) initRoutes() {
 	self.app.GET(self.cfgPaths.PathGetGenPass, genPassHandler.GeneratePassword)
 
 	// Initialize health check service
-	healthCheckService := service.NewHealthCheck(*self.cfgStatus, *self.cfgHealthCheck)
+	healthCheckService := service.NewHealthCheck(*self.cfg, *self.cfgStatus, *self.cfgHealthCheck)
 	// Initialize health check handler
 	healthCheckHandler := handler.NewHealthCheck(healthCheckService, *self.cfg, *self.cfgError)
 	// Register health check route

@@ -10,6 +10,7 @@ import (
 
 func TestHealthCheck(t *testing.T) {
 	// Implement your test logic here
+	cfg := *config.CreateNewConfig()
 	cfgStatus := *config.CreateNewConfigStatus()
 	cfgHealthCheck := *config.CreateNewConfigHealthCheck()
 	t.Parallel()
@@ -32,7 +33,7 @@ func TestHealthCheck(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// Call the HealthCheck function and compare the result with tc.expectedStatus
 			t.Parallel()
-			svc := NewHealthCheck(cfgStatus, cfgHealthCheck)
+			svc := NewHealthCheck(cfg, cfgStatus, cfgHealthCheck)
 			result, err := svc.GenerateHealthCheck()
 			assert.Equal(t, tc.expectedMessage, cfgStatus.StatusOK)
 			assert.Equal(t, tc.expectedServiceName, cfgHealthCheck.BookmarkService)
