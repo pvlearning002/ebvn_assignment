@@ -22,9 +22,12 @@ import (
 // MockShortenURL implements service.ShortenURL.
 type MockShortenURL struct {
 	mock.Mock
-	service.ShortenURL
 }
 
+// Compile-time interface check.
+var _ service.ShortenURL = (*MockShortenURL)(nil)
+
+// CreateShortenLink mocks the CreateShortenLink service method.
 func (m *MockShortenURL) CreateShortenLink(
 	ctx context.Context,
 	url string,
@@ -36,14 +39,29 @@ func (m *MockShortenURL) CreateShortenLink(
 		return nil, args.Error(1)
 	}
 
-	return args.Get(0).(*model.ShortenLinkOutput), args.Error(1)
+	output, ok := args.Get(0).(*model.ShortenLinkOutput)
+	if !ok {
+		return nil, args.Error(1)
+	}
+
+	return output, args.Error(1)
 }
 
-// Compile-time interface check.
-var _ service.ShortenURL = (*MockShortenURL)(nil)
+// GetUrlByCode mocks the GetUrlByCode service method.
+func (m *MockShortenURL) GetUrlByCode(
+	ctx context.Context,
+	keyCode string,
+) (string, error) {
+
+	args := m.Called(ctx, keyCode)
+	return args.String(0), args.Error(1)
+}
 
 // createTestRedis creates a Redis client using miniredis.
-func createTestRedis(t *testing.T) (*miniredis.Miniredis, *redis.Client) {
+func createTestRedis(
+	t *testing.T,
+) (*miniredis.Miniredis, *redis.Client) {
+
 	t.Helper()
 
 	miniRedis, err := miniredis.Run()
@@ -54,7 +72,7 @@ func createTestRedis(t *testing.T) (*miniredis.Miniredis, *redis.Client) {
 	})
 
 	t.Cleanup(func() {
-		client.Close()
+		_ = client.Close()
 		miniRedis.Close()
 	})
 
@@ -67,16 +85,43 @@ func createTestHandler(
 	client *redis.Client,
 ) *shortenURLHandler {
 
-	cfg := config.Config{}
+	cfg := *config.CreateNewConfig()
+	cfgError := *config.CreateNewConfigError()
+	cfgParameter := *config.CreateNewConfigParameter()
 
-	cfgError := config.ConfigError{
-		ErrorTitle:           "error",
-		ErrorRedisConnection: "Redis connection error",
-		ErrorInvalidInput:    "Invalid input",
-		ErrorInternalServer:  "Internal server error",
-	}
+	return NewShortenURLHandler(
+		svc,
+		cfg,
+		cfgError,
+		cfgParameter,
+		client,
+	)
+}
 
-	return NewShortenURLHandler(svc, cfg, cfgError, config.ConfigParameter{}, client)
+// createShortenLinkRequest creates an HTTP request for shortening a URL.
+func createShortenLinkRequest(body string) *http.Request {
+
+	req := httptest.NewRequest(
+		http.MethodPost,
+		"/v1/links/shorten",
+		bytes.NewBufferString(body),
+	)
+
+	req.Header.Set("Content-Type", "application/json")
+
+	return req
+}
+
+// createTestContext creates a Gin test context.
+func createTestContext(
+	req *http.Request,
+) (*gin.Context, *httptest.ResponseRecorder) {
+
+	recorder := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(recorder)
+	ctx.Request = req
+
+	return ctx, recorder
 }
 
 // TestCreateShortenLink tests CreateShortenLink.
@@ -88,26 +133,26 @@ func TestCreateShortenLink(t *testing.T) {
 
 		miniRedis, client := createTestRedis(t)
 
-		// Stop Redis to simulate connection failure.
+		// Close Redis to simulate connection failure.
 		miniRedis.Close()
 
 		mockService := new(MockShortenURL)
 		handler := createTestHandler(mockService, client)
 
-		req := httptest.NewRequest(
-			http.MethodPost,
-			"/v1/links/shorten",
-			bytes.NewBufferString(`{"url":"https://google.com"}`),
+		req := createShortenLinkRequest(
+			`{"url":"https://google.com","expiration_time":3600}`,
 		)
-		req.Header.Set("Content-Type", "application/json")
 
-		recorder := httptest.NewRecorder()
-		ctx, _ := gin.CreateTestContext(recorder)
-		ctx.Request = req
+		ctx, recorder := createTestContext(req)
 
 		handler.CreateShortenLink(ctx)
 
-		assert.Equal(t, http.StatusInternalServerError, recorder.Code)
+		assert.Equal(
+			t,
+			http.StatusInternalServerError,
+			recorder.Code,
+		)
+
 		assert.Empty(t, mockService.Calls)
 	})
 
@@ -118,20 +163,46 @@ func TestCreateShortenLink(t *testing.T) {
 		mockService := new(MockShortenURL)
 		handler := createTestHandler(mockService, client)
 
-		req := httptest.NewRequest(
-			http.MethodPost,
-			"/v1/links/shorten",
-			bytes.NewBufferString(`{"url":`),
+		// Invalid JSON.
+		req := createShortenLinkRequest(
+			`{"url":`,
 		)
-		req.Header.Set("Content-Type", "application/json")
 
-		recorder := httptest.NewRecorder()
-		ctx, _ := gin.CreateTestContext(recorder)
-		ctx.Request = req
+		ctx, recorder := createTestContext(req)
 
 		handler.CreateShortenLink(ctx)
 
-		assert.Equal(t, http.StatusBadRequest, recorder.Code)
+		assert.Equal(
+			t,
+			http.StatusBadRequest,
+			recorder.Code,
+		)
+
+		assert.Empty(t, mockService.Calls)
+	})
+
+	t.Run("missing_expiration_time", func(t *testing.T) {
+
+		_, client := createTestRedis(t)
+
+		mockService := new(MockShortenURL)
+		handler := createTestHandler(mockService, client)
+
+		// Missing required expiration_time.
+		req := createShortenLinkRequest(
+			`{"url":"https://google.com"}`,
+		)
+
+		ctx, recorder := createTestContext(req)
+
+		handler.CreateShortenLink(ctx)
+
+		assert.Equal(
+			t,
+			http.StatusBadRequest,
+			recorder.Code,
+		)
+
 		assert.Empty(t, mockService.Calls)
 	})
 
@@ -152,20 +223,20 @@ func TestCreateShortenLink(t *testing.T) {
 
 		handler := createTestHandler(mockService, client)
 
-		req := httptest.NewRequest(
-			http.MethodPost,
-			"/v1/links/shorten",
-			bytes.NewBufferString(`{"url":"https://google.com"}`),
+		req := createShortenLinkRequest(
+			`{"url":"https://google.com","expiration_time":3600}`,
 		)
-		req.Header.Set("Content-Type", "application/json")
 
-		recorder := httptest.NewRecorder()
-		ctx, _ := gin.CreateTestContext(recorder)
-		ctx.Request = req
+		ctx, recorder := createTestContext(req)
 
 		handler.CreateShortenLink(ctx)
 
-		assert.Equal(t, http.StatusInternalServerError, recorder.Code)
+		assert.Equal(
+			t,
+			http.StatusInternalServerError,
+			recorder.Code,
+		)
+
 		mockService.AssertExpectations(t)
 	})
 
@@ -188,41 +259,33 @@ func TestCreateShortenLink(t *testing.T) {
 
 		handler := createTestHandler(mockService, client)
 
-		req := httptest.NewRequest(
-			http.MethodPost,
-			"/v1/links/shorten",
-			bytes.NewBufferString(`{"url":"https://google.com"}`),
+		req := createShortenLinkRequest(
+			`{"url":"https://google.com","expiration_time":3600}`,
 		)
-		req.Header.Set("Content-Type", "application/json")
 
-		recorder := httptest.NewRecorder()
-		ctx, _ := gin.CreateTestContext(recorder)
-		ctx.Request = req
+		ctx, recorder := createTestContext(req)
 
 		handler.CreateShortenLink(ctx)
 
-		assert.Equal(t, http.StatusOK, recorder.Code)
-		assert.Equal(t, "application/json; charset=utf-8",
-			recorder.Header().Get("Content-Type"))
+		assert.Equal(
+			t,
+			http.StatusOK,
+			recorder.Code,
+		)
+
+		assert.Equal(
+			t,
+			"application/json; charset=utf-8",
+			recorder.Header().Get("Content-Type"),
+		)
 
 		mockService.AssertExpectations(t)
 	})
 }
 
-type MockShortenURLService struct {
-	mock.Mock
-	service.ShortenURL
-}
-
-func (m *MockShortenURLService) GetUrlByCode(
-	ctx context.Context,
-	keyCode string,
-) (string, error) {
-	args := m.Called(ctx, keyCode)
-	return args.String(0), args.Error(1)
-}
-
+// TestRedirectToOriginalURL tests RedirectToOriginalURL.
 func TestRedirectToOriginalURL(t *testing.T) {
+
 	gin.SetMode(gin.TestMode)
 
 	testCases := []struct {
@@ -235,27 +298,27 @@ func TestRedirectToOriginalURL(t *testing.T) {
 		shouldCallMock bool
 	}{
 		{
-			name:           "empty key code",
+			name:           "empty_key_code",
 			keyCode:        "",
 			expectedStatus: http.StatusBadRequest,
 			shouldCallMock: false,
 		},
 		{
-			name:           "service returns error",
+			name:           "service_error",
 			keyCode:        "abc123",
 			mockError:      errors.New("redis connection error"),
 			expectedStatus: http.StatusInternalServerError,
 			shouldCallMock: true,
 		},
 		{
-			name:           "URL not found",
+			name:           "url_not_found",
 			keyCode:        "abc123",
 			mockURL:        "",
 			expectedStatus: http.StatusNotFound,
 			shouldCallMock: true,
 		},
 		{
-			name:           "redirect successfully",
+			name:           "redirect_success",
 			keyCode:        "abc123",
 			mockURL:        "https://www.google.com",
 			expectedStatus: http.StatusMovedPermanently,
@@ -265,38 +328,39 @@ func TestRedirectToOriginalURL(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+
 		t.Run(tc.name, func(t *testing.T) {
-			mockService := new(MockShortenURLService)
+
+			mockService := new(MockShortenURL)
 
 			if tc.shouldCallMock {
 				mockService.On(
 					"GetUrlByCode",
 					mock.Anything,
 					tc.keyCode,
-				).Return(tc.mockURL, tc.mockError).Once()
+				).Return(
+					tc.mockURL,
+					tc.mockError,
+				).Once()
 			}
 
 			cfg := *config.CreateNewConfig()
-			cfgParameter := *config.CreateNewConfigParameter()
 			cfgError := *config.CreateNewConfigError()
+			cfgParameter := *config.CreateNewConfigParameter()
 
 			handler := &shortenURLHandler{
 				shortenURLService: mockService,
 				cfg:               cfg,
-				cfgParameter:      cfgParameter,
 				cfgError:          cfgError,
+				cfgParameter:      cfgParameter,
 			}
 
 			router := gin.New()
 
 			if tc.keyCode == "" {
-				router.GET("/", func(ctx *gin.Context) {
-					handler.RedirectToOriginalURL(ctx)
-				})
+				router.GET("/", handler.RedirectToOriginalURL)
 			} else {
-				router.GET("/:code", func(ctx *gin.Context) {
-					handler.RedirectToOriginalURL(ctx)
-				})
+				router.GET("/:code", handler.RedirectToOriginalURL)
 			}
 
 			request := httptest.NewRequest(
@@ -309,7 +373,11 @@ func TestRedirectToOriginalURL(t *testing.T) {
 
 			router.ServeHTTP(recorder, request)
 
-			assert.Equal(t, tc.expectedStatus, recorder.Code)
+			assert.Equal(
+				t,
+				tc.expectedStatus,
+				recorder.Code,
+			)
 
 			if tc.expectedURL != "" {
 				assert.Equal(

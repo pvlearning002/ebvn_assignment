@@ -5,47 +5,67 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/pvlearning002/ebvn_assignment/internal/api"
-	"github.com/pvlearning002/ebvn_assignment/internal/config"
+	"github.com/google/uuid"
+
+	"github.com/alicebob/miniredis/v2"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/pvlearning002/ebvn_assignment/internal/api"
+	"github.com/pvlearning002/ebvn_assignment/internal/config"
 )
 
-// @Summary Test Health Check Endpoint
-// @Description TestHealthCheckEndPoint tests the health check endpoint
+// TestHealthCheckEndPoint tests the health check endpoint.
 func TestHealthCheckEndPoint(t *testing.T) {
-	t.Parallel()
+	// Initialize configuration.
 	cfg := *config.CreateNewConfig()
 	cfgStatus := *config.CreateNewConfigStatus()
 	cfgError := *config.CreateNewConfigError()
 	cfgPaths := *config.CreateNewConfigPaths()
 	cfgHealthCheck := *config.CreateNewConfigHealthCheck()
 	cfgParameter := *config.CreateNewConfigParameter()
-	redisClient := redis.NewClient(&redis.Options{Addr: "REDIS"})
+
+	// Initialize a valid UUID for HealthCheckService.
+	cfg.InstanceID = uuid.NewString()
+
+	// Start an in-memory Redis server.
+	miniRedis, err := miniredis.Run()
+	require.NoError(t, err)
+	defer miniRedis.Close()
+
+	// Create Redis client.
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: miniRedis.Addr(),
+	})
+	defer redisClient.Close()
+
+	// Initialize Gin engine.
+	testAPI := api.NewEngine(
+		&cfg,
+		&cfgStatus,
+		&cfgError,
+		&cfgPaths,
+		&cfgHealthCheck,
+		&cfgParameter,
+		redisClient,
+	)
+
 	testCases := []struct {
 		name             string
-		setupTestHTTP    func(api api.Engine) *httptest.ResponseRecorder
+		method           string
 		expectedStatus   int
 		expectedResponse string
 	}{
 		{
-			name: "normal case",
-			setupTestHTTP: func(api api.Engine) *httptest.ResponseRecorder {
-				recorder := httptest.NewRecorder()
-				req := httptest.NewRequest(http.MethodGet, cfgPaths.PathGetHealthCheck, nil)
-				api.ServeHTTP(recorder, req)
-				return recorder
-			},
+			name:             "normal case",
+			method:           http.MethodGet,
 			expectedStatus:   http.StatusOK,
 			expectedResponse: cfgHealthCheck.BookmarkService,
-		}, {
-			name: "wrong method case",
-			setupTestHTTP: func(api api.Engine) *httptest.ResponseRecorder {
-				recorder := httptest.NewRecorder()
-				req := httptest.NewRequest(http.MethodPost, cfgPaths.PathGetHealthCheck, nil)
-				api.ServeHTTP(recorder, req)
-				return recorder
-			},
+		},
+		{
+			name:             "wrong method case",
+			method:           http.MethodPost,
 			expectedStatus:   http.StatusNotFound,
 			expectedResponse: "404 page not found",
 		},
@@ -53,11 +73,29 @@ func TestHealthCheckEndPoint(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			testAPI := api.NewEngine(&cfg, &cfgStatus, &cfgError, &cfgPaths, &cfgHealthCheck, &cfgParameter, redisClient)
-			recorder := tc.setupTestHTTP(testAPI)
-			assert.Equal(t, tc.expectedStatus, recorder.Code)
-			assert.Contains(t, recorder.Body.String(), tc.expectedResponse)
+			recorder := httptest.NewRecorder()
+
+			req := httptest.NewRequest(
+				tc.method,
+				cfgPaths.PathGetHealthCheck,
+				nil,
+			)
+
+			testAPI.ServeHTTP(recorder, req)
+
+			// Verify HTTP status code.
+			assert.Equal(
+				t,
+				tc.expectedStatus,
+				recorder.Code,
+			)
+
+			// Verify response body.
+			assert.Contains(
+				t,
+				recorder.Body.String(),
+				tc.expectedResponse,
+			)
 		})
 	}
 }

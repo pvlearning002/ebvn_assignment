@@ -7,6 +7,10 @@ import (
 	"github.com/pvlearning002/ebvn_assignment/internal/model"
 	"github.com/pvlearning002/ebvn_assignment/internal/repository"
 	"github.com/pvlearning002/ebvn_assignment/pkg/utils/utils_log"
+
+	"errors"
+
+	"github.com/redis/go-redis/v9"
 )
 
 // ShortenURL defines the interface for shortening URLs.
@@ -69,11 +73,22 @@ func (self *shortenURLService) CreateShortenLink(ctx context.Context, url string
 }
 
 // ShortenURL shortens the provided original URL and returns the shortened URL.
-func (self *shortenURLService) GetUrlByCode(ctx context.Context, keyCode string) (string, error) {
+
+func (self *shortenURLService) GetUrlByCode(
+	ctx context.Context,
+	keyCode string,
+) (string, error) {
+
 	url, err := self.urlStorage.GetURL(ctx, keyCode)
+
+	if errors.Is(err, redis.Nil) {
+		return self.cfg.StringEmpty, nil
+	}
+
 	if err != nil {
 		utils_log.WriteLogError(err.Error())
 		return self.cfg.StringEmpty, err
 	}
+
 	return url, nil
 }
