@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	gin "github.com/gin-gonic/gin"
+	mocks "github.com/pvlearning002/ebvn_assignment/internal/app/service/mocks"
 	config "github.com/pvlearning002/ebvn_assignment/internal/config"
-	mocks "github.com/pvlearning002/ebvn_assignment/internal/service/mocks"
 	assert "github.com/stretchr/testify/assert"
 )
 

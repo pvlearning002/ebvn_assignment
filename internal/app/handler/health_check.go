@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/pvlearning002/ebvn_assignment/internal/app/service"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
-	"github.com/pvlearning002/ebvn_assignment/internal/service"
 	"github.com/pvlearning002/ebvn_assignment/pkg/utils/utils_log"
 )
 

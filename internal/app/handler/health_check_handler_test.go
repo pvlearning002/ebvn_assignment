@@ -10,9 +10,9 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/gin-gonic/gin"
+	"github.com/pvlearning002/ebvn_assignment/internal/app/model"
+	services_mocks "github.com/pvlearning002/ebvn_assignment/internal/app/service/mocks"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
-	"github.com/pvlearning002/ebvn_assignment/internal/model"
-	services_mocks "github.com/pvlearning002/ebvn_assignment/internal/service/mocks"
 	"github.com/stretchr/testify/assert"
 )
 

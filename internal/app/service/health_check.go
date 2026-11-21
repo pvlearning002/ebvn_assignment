@@ -2,8 +2,8 @@ package service
 
 import (
 	"github.com/google/uuid"
+	"github.com/pvlearning002/ebvn_assignment/internal/app/model"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
-	"github.com/pvlearning002/ebvn_assignment/internal/model"
 )
 
 //go:generate mockery --name=HealthCheck --filename=health_check_mck.go

@@ -10,9 +10,9 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/gin-gonic/gin"
+	"github.com/pvlearning002/ebvn_assignment/internal/app/model"
+	"github.com/pvlearning002/ebvn_assignment/internal/app/service"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
-	"github.com/pvlearning002/ebvn_assignment/internal/model"
-	"github.com/pvlearning002/ebvn_assignment/internal/service"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

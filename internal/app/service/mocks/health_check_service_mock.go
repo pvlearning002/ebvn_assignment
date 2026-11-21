@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	model "github.com/pvlearning002/ebvn_assignment/internal/model"
+	model "github.com/pvlearning002/ebvn_assignment/internal/app/model"
 	mock "github.com/stretchr/testify/mock"
 )
 

@@ -6,10 +6,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/pvlearning002/ebvn_assignment/docs"
+	"github.com/pvlearning002/ebvn_assignment/internal/app/handler"
+	repository "github.com/pvlearning002/ebvn_assignment/internal/app/repository"
+	service "github.com/pvlearning002/ebvn_assignment/internal/app/service"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
-	"github.com/pvlearning002/ebvn_assignment/internal/handler"
-	repository "github.com/pvlearning002/ebvn_assignment/internal/repository"
-	service "github.com/pvlearning002/ebvn_assignment/internal/service"
 	"github.com/redis/go-redis/v9"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"

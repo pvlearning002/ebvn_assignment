@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/pvlearning002/ebvn_assignment/internal/app/repository"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
-	"github.com/pvlearning002/ebvn_assignment/internal/repository"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
