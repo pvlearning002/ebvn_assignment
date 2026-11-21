@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	config "github.com/pvlearning002/ebvn_assignment/internal/config"
-	redis_utils "github.com/pvlearning002/ebvn_assignment/pkg/utils/utils_redis"
+	redis_utils "github.com/pvlearning002/ebvn_assignment/internal/app/utils"
 	goredis "github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 )

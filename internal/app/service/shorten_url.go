@@ -7,6 +7,7 @@ import (
 	"github.com/pvlearning002/ebvn_assignment/internal/app/repository"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
 	"github.com/pvlearning002/ebvn_assignment/pkg/utils/utils_log"
+	"github.com/pvlearning002/ebvn_assignment/pkg/utils/utils_string"
 
 	"errors"
 
@@ -21,33 +22,35 @@ type ShortenURL interface {
 
 // shortenURLService is the implementation of the ShortenURLService interface.
 type shortenURLService struct {
-	urlStorage repository.URLStorage
-	genPass    GenPass
-	cfg        config.Config
-	cfgError   config.ConfigError
+	urlStorage    repository.URLStorage
+	cfg           config.Config
+	cfgError      config.ConfigError
+	logger        utils_log.CustomLogger
+	custom_string utils_string.UtilsString
 }
 
 // NewShortenURLService creates a new instance of the shortenURLService with the provided URL storage and configuration.
-func NewShortenURLService(urlStorage repository.URLStorage, genPass GenPass, cfg config.Config, cfgError config.ConfigError) ShortenURL {
+func NewShortenURLService(urlStorage repository.URLStorage, cfg config.Config, cfgError config.ConfigError, logger utils_log.CustomLogger, custom_string utils_string.UtilsString) ShortenURL {
 	return &shortenURLService{
-		urlStorage: urlStorage,
-		genPass:    genPass,
-		cfg:        cfg,
-		cfgError:   cfgError,
+		urlStorage:    urlStorage,
+		cfg:           cfg,
+		cfgError:      cfgError,
+		logger:        logger,
+		custom_string: custom_string,
 	}
 }
 
 func (self *shortenURLService) generateKey(ctx context.Context) (string, error) {
-	key, err := self.genPass.GenerateRandomString(self.cfg.KeycodeLengthDefault)
+	key, err := self.custom_string.GenerateRandomString(self.cfg.KeycodeLengthDefault)
 	if err != nil {
-		utils_log.WriteLogError(err.Error())
+		self.logger.WriteLogError(err.Error())
 		return self.cfg.StringEmpty, err
 	}
 	url_check, _ := self.urlStorage.GetURL(ctx, key)
 	for url_check != self.cfg.StringEmpty {
-		key, err = self.genPass.GenerateRandomString(self.cfg.KeycodeLengthDefault)
+		key, err := self.custom_string.GenerateRandomString(self.cfg.KeycodeLengthDefault)
 		if err != nil {
-			utils_log.WriteLogError(err.Error())
+			self.logger.WriteLogError(err.Error())
 			return self.cfg.StringEmpty, err
 		}
 		url_check, _ = self.urlStorage.GetURL(ctx, key)
@@ -60,13 +63,13 @@ func (self *shortenURLService) generateKey(ctx context.Context) (string, error) 
 func (self *shortenURLService) CreateShortenLink(ctx context.Context, url string) (*model.ShortenLinkOutput, error) {
 	key, err := self.generateKey(ctx)
 	if err != nil {
-		utils_log.WriteLogError(err.Error())
+		self.logger.WriteLogError(err.Error())
 		return &model.ShortenLinkOutput{KeyCode: self.cfg.StringEmpty, Message: err.Error()}, err
 	}
 
 	err = self.urlStorage.StoreURL(ctx, key, url)
 	if err != nil {
-		utils_log.WriteLogError(err.Error())
+		self.logger.WriteLogError(err.Error())
 		return &model.ShortenLinkOutput{KeyCode: self.cfg.StringEmpty, Message: err.Error()}, err
 	}
 	return &model.ShortenLinkOutput{KeyCode: key, Message: "Shorten URL generated successfully"}, nil
@@ -86,7 +89,7 @@ func (self *shortenURLService) GetUrlByCode(
 	}
 
 	if err != nil {
-		utils_log.WriteLogError(err.Error())
+		self.logger.WriteLogError(err.Error())
 		return self.cfg.StringEmpty, err
 	}
 

@@ -17,10 +17,11 @@ type healthCheckHandler struct {
 	svc      service.HealthCheck
 	cfg      config.Config
 	cfgError config.ConfigError
+	logger   utils_log.CustomLogger
 }
 
-func NewHealthCheck(svc service.HealthCheck, cfg config.Config, cfgError config.ConfigError) HealthCheck {
-	return &healthCheckHandler{svc: svc, cfg: cfg, cfgError: cfgError}
+func NewHealthCheck(svc service.HealthCheck, cfg config.Config, cfgError config.ConfigError, logger utils_log.CustomLogger) HealthCheck {
+	return &healthCheckHandler{svc: svc, cfg: cfg, cfgError: cfgError, logger: logger}
 }
 
 // @Summary Generate Health Check
@@ -33,7 +34,7 @@ func NewHealthCheck(svc service.HealthCheck, cfg config.Config, cfgError config.
 func (self *healthCheckHandler) GenerateHealthCheck(c *gin.Context) {
 	modelHealthCheck, err := self.svc.GenerateHealthCheck()
 	if err != nil {
-		utils_log.WriteLogError(err.Error())
+		self.logger.WriteLogError(err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInternalServer})
 		return
 	}

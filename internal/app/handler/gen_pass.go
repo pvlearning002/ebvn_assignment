@@ -20,15 +20,17 @@ type genPassHandler struct {
 	cfg        config.Config
 	cfgStatus  config.ConfigStatus
 	cfgError   config.ConfigError
+	logger     utils_log.CustomLogger
 }
 
 // NewGenPass creates a new instance of the genPassHandler with the provided GenPass service and configuration.
-func NewGenPass(genPassSvc service.GenPass, cfg config.Config, cfgStatus config.ConfigStatus, cfgError config.ConfigError) GenPass {
+func NewGenPass(genPassSvc service.GenPass, cfg config.Config, cfgStatus config.ConfigStatus, cfgError config.ConfigError, logger utils_log.CustomLogger) GenPass {
 	return &genPassHandler{
 		genPassSvc: genPassSvc,
 		cfg:        cfg,
 		cfgStatus:  cfgStatus,
 		cfgError:   cfgError,
+		logger:     logger,
 	}
 }
 
@@ -43,7 +45,7 @@ func (self *genPassHandler) GeneratePassword(c *gin.Context) {
 	pwd, err := self.genPassSvc.GeneratePassword()
 	if err != nil || len(pwd) != self.cfg.PasswordLengthDefault {
 		if err != nil {
-			utils_log.WriteLogError(err.Error())
+			self.logger.WriteLogError(err.Error())
 		}
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{self.cfgStatus.StatusOK: self.cfgError.ErrorInternalServer})
 		return

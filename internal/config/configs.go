@@ -97,6 +97,7 @@ type ConfigError struct {
 	ErrorLengthZero      string `default:"Length of string must be greater than 0" envconfig:"ERROR_LENGTH_ZERO"`
 	ErrorInvalidCode     string `default:"Invalid code" envconfig:"ERROR_INVALID_CODE"`
 	ErrorUrlNotFound     string `default:"URL not found" envconfig:"ERROR_URL_NOT_FOUND"`
+	ErrorProcessing      string `default:"Processing Error" envconfig:"ERROR_PROCESSING"`
 }
 
 func NewConfigError() (*ConfigError, error) {
@@ -154,6 +155,29 @@ func NewConfigParameter() (*ConfigParameter, error) {
 
 func CreateNewConfigParameter() *ConfigParameter {
 	cfg, err := NewConfigParameter()
+	if err != nil {
+		panic(err)
+	}
+	return cfg
+}
+
+type ConfigRedis struct {
+	Address  string `default:"localhost:6379" envconfig:"REDIS_ADDRESS"`
+	Password string `default:"" envconfig:"REDIS_PASSWORD"`
+	DB       int    `default:"0" envconfig:"REDIS_DB"`
+}
+
+func NewConfigRedis() (*ConfigRedis, error) {
+	cfg := &ConfigRedis{}
+	err := envconfig.Process("config_parameter", cfg)
+	if err != nil {
+		return nil, err
+	}
+	return cfg, nil
+}
+
+func CreateNewConfigRedis() *ConfigRedis {
+	cfg, err := NewConfigRedis()
 	if err != nil {
 		panic(err)
 	}

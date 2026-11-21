@@ -67,6 +67,7 @@ func createTestShortenURLService(
 		genPass,
 		cfg,
 		config.ConfigError{},
+		nil,
 	)
 }
 

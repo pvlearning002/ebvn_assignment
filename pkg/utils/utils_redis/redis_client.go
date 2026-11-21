@@ -7,27 +7,20 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pvlearning002/ebvn_assignment/internal/config"
 	"github.com/redis/go-redis/v9"
 )
 
-var dockerInspect = func() ([]byte, error) {
-	cmd := exec.Command(
-		"docker",
-		"inspect",
-		"-f",
-		"{{.State.Running}}",
-		"redis",
-	)
-	return cmd.Output()
+type CustomRedisClient interface {
+	IsRedisConnect(ctx context.Context, client *redis.Client) (bool, error)
+}
+
+type customRedisClient struct {
+	cfg config.ConfigRedis
 }
 
 // NewRedisClient creates a new Redis client using the provided environment prefix for configuration.
-func NewRedisClient(envPrefix string) (*redis.Client, error) {
-	cfg, err := newConfig(envPrefix)
-	if err != nil {
-		return nil, err
-	}
-
+func NewRedisClient(cfg config.ConfigRedis) (*redis.Client, error) {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     cfg.Address,
 		Password: cfg.Password,
@@ -37,22 +30,34 @@ func NewRedisClient(envPrefix string) (*redis.Client, error) {
 	return rdb, nil
 }
 
-func CheckRedisConnection(
+func (self *customRedisClient) dockerInspect() ([]byte, error) {
+	cmd := exec.Command(
+		"docker",
+		"inspect",
+		"-f",
+		"{{.State.Running}}",
+		"redis",
+	)
+	return cmd.Output()
+
+}
+
+func (self *customRedisClient) IsRedisConnect(
 	ctx context.Context,
 	client *redis.Client,
-) error {
+) (bool, error) {
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
 	if err := client.Ping(ctx).Err(); err != nil {
-		return fmt.Errorf("redis connection failed: %w", err)
+		return false, fmt.Errorf("redis connection failed: %w", err)
 	}
 
-	return nil
+	return true, nil
 }
 
-func IsRedisContainerRunning() bool {
-	output, err := dockerInspect()
+func (self *customRedisClient) IsRedisContainerRunning() bool {
+	output, err := self.dockerInspect()
 	if err != nil {
 		return false
 	}

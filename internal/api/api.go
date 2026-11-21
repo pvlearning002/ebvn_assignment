@@ -5,11 +5,13 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	// cSpell:ignore pvlearning ebvn
 	_ "github.com/pvlearning002/ebvn_assignment/docs"
 	"github.com/pvlearning002/ebvn_assignment/internal/app/handler"
 	repository "github.com/pvlearning002/ebvn_assignment/internal/app/repository"
 	service "github.com/pvlearning002/ebvn_assignment/internal/app/service"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
+	"github.com/pvlearning002/ebvn_assignment/pkg/utils/utils_log"
 	"github.com/redis/go-redis/v9"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -29,9 +31,10 @@ type engine struct {
 	cfgHealthCheck *config.ConfigHealthCheck
 	cfgParameter   *config.ConfigParameter
 	redisClient    *redis.Client
+	logger         *utils_log.CustomLogger
 }
 
-func NewEngine(cfg *config.Config, cfgStatus *config.ConfigStatus, cfgError *config.ConfigError, cfgPaths *config.ConfigPaths, cfgHealthCheck *config.ConfigHealthCheck, cfgParameter *config.ConfigParameter, redisClient *redis.Client) Engine {
+func NewEngine(cfg *config.Config, cfgStatus *config.ConfigStatus, cfgError *config.ConfigError, cfgPaths *config.ConfigPaths, cfgHealthCheck *config.ConfigHealthCheck, cfgParameter *config.ConfigParameter, redisClient *redis.Client, logger *utils_log.CustomLogger) Engine {
 	app := &engine{
 		app:            gin.Default(),
 		cfg:            cfg,
@@ -41,6 +44,7 @@ func NewEngine(cfg *config.Config, cfgStatus *config.ConfigStatus, cfgError *con
 		cfgHealthCheck: cfgHealthCheck,
 		cfgParameter:   cfgParameter,
 		redisClient:    redisClient,
+		logger:         logger,
 	}
 	app.initRoutes()
 	return app
@@ -59,9 +63,9 @@ func (self *engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // initRoutes initializes the routes for the API engine.
 func (self *engine) initRoutes() {
 	// Initialize gen pass service
-	genPassService := service.NewGenPass(*self.cfg, *self.cfgError)
+	genPassService := service.NewGenPass(*self.cfg, *self.cfgError, *self.logger)
 	// Initialize gen pass handler
-	genPassHandler := handler.NewGenPass(genPassService, *self.cfg, *self.cfgStatus, *self.cfgError)
+	genPassHandler := handler.NewGenPass(genPassService, *self.cfg, *self.cfgStatus, *self.cfgError, *self.logger)
 	// Register gen pass route
 	self.app.GET(self.cfgPaths.PathSwagger, ginSwagger.WrapHandler(swaggerFiles.Handler))
 	self.app.GET(self.cfgPaths.PathGetGenPass, genPassHandler.GeneratePassword)
@@ -69,15 +73,15 @@ func (self *engine) initRoutes() {
 	// Initialize health check service
 	healthCheckService := service.NewHealthCheck(*self.cfg, *self.cfgStatus, *self.cfgHealthCheck)
 	// Initialize health check handler
-	healthCheckHandler := handler.NewHealthCheck(healthCheckService, *self.cfg, *self.cfgError)
+	healthCheckHandler := handler.NewHealthCheck(healthCheckService, *self.cfg, *self.cfgError, *self.logger)
 	// Register health check route
 	self.app.GET(self.cfgPaths.PathGetHealthCheck, healthCheckHandler.GenerateHealthCheck)
 
 	urlStorage := repository.NewURLStorage(self.redisClient, self.cfg)
 	// Initialize shorten URL service
-	shortenURLService := service.NewShortenURLService(urlStorage, genPassService, *self.cfg, *self.cfgError)
+	shortenURLService := service.NewShortenURLService(urlStorage, genPassService, *self.cfg, *self.cfgError, *self.logger)
 	// Initialize shorten URL handler
-	shortenURLHandler := handler.NewShortenURLHandler(shortenURLService, *self.cfg, *self.cfgError, *self.cfgParameter, self.redisClient)
+	shortenURLHandler := handler.NewShortenURLHandler(shortenURLService, *self.cfg, *self.cfgError, *self.cfgParameter, self.redisClient, *self.logger)
 	// Register shorten URL route
 	self.app.POST(self.cfgPaths.PathPostShortenURL, shortenURLHandler.CreateShortenLink)
 	self.app.GET(self.cfgPaths.PathGetURL, shortenURLHandler.RedirectToOriginalURL)

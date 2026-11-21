@@ -23,16 +23,18 @@ type shortenURLHandler struct {
 	cfgError          config.ConfigError
 	cfgParameter      config.ConfigParameter
 	client            *redis.Client
+	logger            utils_log.CustomLogger
 }
 
 // NewShortenURLHandler creates a new instance of the ShortenURLHandler with the provided service.
-func NewShortenURLHandler(svc service.ShortenURL, cfg config.Config, cfgError config.ConfigError, cfgParameter config.ConfigParameter, client *redis.Client) *shortenURLHandler {
+func NewShortenURLHandler(svc service.ShortenURL, cfg config.Config, cfgError config.ConfigError, cfgParameter config.ConfigParameter, client *redis.Client, logger utils_log.CustomLogger) *shortenURLHandler {
 	return &shortenURLHandler{
 		shortenURLService: svc,
 		cfg:               cfg,
 		cfgError:          cfgError,
 		cfgParameter:      cfgParameter,
 		client:            client,
+		logger:            logger,
 	}
 }
 
@@ -50,19 +52,19 @@ func NewShortenURLHandler(svc service.ShortenURL, cfg config.Config, cfgError co
 func (self *shortenURLHandler) CreateShortenLink(ctx *gin.Context) {
 	// Implementation for creating a shortened link
 	if err := self.client.Ping(ctx).Err(); err != nil {
-		utils_log.WriteLogError(err.Error())
+		self.logger.WriteLogError(err.Error())
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorRedisConnection})
 		return
 	}
 	input := &model.ShortenLinkInput{}
 	if err := ctx.ShouldBindJSON(input); err != nil {
-		utils_log.WriteLogError(err.Error())
+		self.logger.WriteLogError(err.Error())
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInvalidInput})
 		return
 	}
 	shortenLinkOutput, err := self.shortenURLService.CreateShortenLink(ctx, input.Url)
 	if err != nil {
-		utils_log.WriteLogError(err.Error())
+		self.logger.WriteLogError(err.Error())
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInternalServer})
 		return
 	}
@@ -83,13 +85,13 @@ func (self *shortenURLHandler) CreateShortenLink(ctx *gin.Context) {
 func (self *shortenURLHandler) RedirectToOriginalURL(ctx *gin.Context) {
 	keyCode := ctx.Param(self.cfgParameter.Code)
 	if keyCode == self.cfg.StringEmpty {
-		utils_log.WriteLogError(self.cfgError.ErrorInvalidCode)
+		self.logger.WriteLogError(self.cfgError.ErrorInvalidCode)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInvalidCode})
 		return
 	}
 	url, err := self.shortenURLService.GetUrlByCode(ctx, keyCode)
 	if err != nil {
-		utils_log.WriteLogError(err.Error())
+		self.logger.WriteLogError(err.Error())
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInternalServer})
 		return
 	}
