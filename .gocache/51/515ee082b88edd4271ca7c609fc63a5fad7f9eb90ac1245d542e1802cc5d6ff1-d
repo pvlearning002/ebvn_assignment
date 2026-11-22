@@ -1,4 +1,0 @@
-./gen_pass_ep_test.go
-./health_check_ep_test.go
-./shorten_url_ep_test.go
-./test_helpers_test.go

@@ -1,6 +1,0 @@
-./gen_pass.go
-./health_check.go
-./shorten_url.go
-./gen_pass_service_test.go
-./health_check_service_test.go
-./shorten_url_service_test.go
