@@ -2,12 +2,8 @@ package repository
 
 import (
 	"context"
-	"time"
 
-	"github.com/redis/go-redis/v9"
-
-	"github.com/pvlearning002/ebvn_assignment/internal/config"
-	redis_utils "github.com/pvlearning002/ebvn_assignment/pkg/utils/utils_redis"
+	"github.com/pvlearning002/ebvn_assignment/pkg/utils"
 )
 
 type URLStorage interface {
@@ -16,25 +12,19 @@ type URLStorage interface {
 }
 
 type urlStorage struct {
-	client      *redis.Client
-	cfg         *config.Config
-	utils_redis redis_utils.CustomRedisClient
+	redisUtils utils.RedisClientUtils
 }
 
-func NewURLStorage(client *redis.Client, cfg *config.Config, utils_redis redis_utils.CustomRedisClient) URLStorage {
+func NewURLStorage(redisUtils utils.RedisClientUtils) URLStorage {
 	return &urlStorage{
-		client:      client,
-		cfg:         cfg,
-		utils_redis: utils_redis,
+		redisUtils: redisUtils,
 	}
 }
 
 func (self *urlStorage) StoreURL(ctx context.Context, key, url string) error {
-
-	expTime := time.Duration(self.cfg.RedisExpiredTime) * time.Second
-	return self.client.Set(ctx, key, url, expTime).Err()
+	return self.redisUtils.StoreStringValue(ctx, key, url)
 }
 
 func (self *urlStorage) GetURL(ctx context.Context, key string) (string, error) {
-	return self.client.Get(ctx, key).Result()
+	return self.redisUtils.GetStringValue(ctx, key)
 }

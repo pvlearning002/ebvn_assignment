@@ -1,4 +1,4 @@
-package utils_log
+package utils
 
 import (
 	"runtime"
@@ -7,7 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type CustomLogger interface {
+type LoggerUtils interface {
 	SetLogLevel(levelStr string)
 	GetPathFunction(skip ...int) string
 	BuildLogMessage(message string, skip ...int) string
@@ -17,14 +17,14 @@ type CustomLogger interface {
 	WriteLogWarning(message string, skip ...int)
 }
 
-type customLogger struct {
+type loggerUtils struct {
 }
 
-func NewCustomLogger() CustomLogger {
-	return &customLogger{}
+func NewLoggerUtils() LoggerUtils {
+	return &loggerUtils{}
 }
 
-func (self *customLogger) SetLogLevel(levelStr string) {
+func (self *loggerUtils) SetLogLevel(levelStr string) {
 	level := zerolog.NoLevel
 	level, err := zerolog.ParseLevel(levelStr)
 	if err != nil {
@@ -33,7 +33,7 @@ func (self *customLogger) SetLogLevel(levelStr string) {
 	zerolog.SetGlobalLevel(level)
 }
 
-func (self *customLogger) GetPathFunction(skip ...int) string {
+func (self *loggerUtils) GetPathFunction(skip ...int) string {
 	default_skip := 3
 	if len(skip) > 0 {
 		default_skip = skip[0]
@@ -50,24 +50,24 @@ func (self *customLogger) GetPathFunction(skip ...int) string {
 }
 
 // Added more function path into log
-func (self *customLogger) BuildLogMessage(message string, skip ...int) string {
+func (self *loggerUtils) BuildLogMessage(message string, skip ...int) string {
 	caller := self.GetPathFunction(skip...)
 	output := "func: " + caller + " - log: " + message
 	return output
 }
 
-func (self *customLogger) WriteLogInfo(message string, skip ...int) {
+func (self *loggerUtils) WriteLogInfo(message string, skip ...int) {
 	log.Info().Msg(self.BuildLogMessage(message, skip...))
 }
 
-func (self *customLogger) WriteLogError(message string, skip ...int) {
+func (self *loggerUtils) WriteLogError(message string, skip ...int) {
 	log.Error().Msg(self.BuildLogMessage(message, skip...))
 }
 
-func (self *customLogger) WriteLogDebug(message string, skip ...int) {
+func (self *loggerUtils) WriteLogDebug(message string, skip ...int) {
 	log.Debug().Msg(self.BuildLogMessage(message, skip...))
 }
 
-func (self *customLogger) WriteLogWarning(message string, skip ...int) {
+func (self *loggerUtils) WriteLogWarning(message string, skip ...int) {
 	log.Warn().Msg(self.BuildLogMessage(message, skip...))
 }

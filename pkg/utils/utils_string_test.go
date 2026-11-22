@@ -1,4 +1,4 @@
-package utils_string
+package utils
 
 import (
 	"strings"
@@ -51,10 +51,10 @@ func TestNewUtilsString(t *testing.T) {
 	cfgError := config.ConfigError{}
 	logger := &MockCustomLogger{}
 
-	result := NewUtilsString(cfg, cfgError, logger)
+	result := NewStringUtils(cfg, cfgError, logger)
 
 	assert.NotNil(t, result)
-	assert.IsType(t, &utilsString{}, result)
+	assert.IsType(t, &stringUtils{}, result)
 }
 
 // Test GenerateRandomString
@@ -122,9 +122,9 @@ func TestGenerateRandomString(t *testing.T) {
 				).Return().Once()
 			}
 
-			utils := NewUtilsString(cfg, cfgError, logger)
+			utils := NewStringUtils(cfg, cfgError, logger)
 
-			result, err := utils.(*utilsString).GenerateRandomString(tt.length)
+			result, err := utils.(*stringUtils).GenerateRandomString(tt.length)
 
 			if tt.expectedError {
 				assert.Error(t, err)
@@ -157,10 +157,10 @@ func TestGenerateRandomString_Unique(t *testing.T) {
 
 	logger := &MockCustomLogger{}
 
-	utils := NewUtilsString(cfg, cfgError, logger)
+	utils := NewStringUtils(cfg, cfgError, logger)
 
-	first, err1 := utils.(*utilsString).GenerateRandomString(32)
-	second, err2 := utils.(*utilsString).GenerateRandomString(32)
+	first, err1 := utils.(*stringUtils).GenerateRandomString(32)
+	second, err2 := utils.(*stringUtils).GenerateRandomString(32)
 
 	assert.NoError(t, err1)
 	assert.NoError(t, err2)
@@ -177,9 +177,9 @@ func TestGenerateRandomString_ValidCharacters(t *testing.T) {
 	cfgError := config.ConfigError{}
 	logger := &MockCustomLogger{}
 
-	utils := NewUtilsString(cfg, cfgError, logger)
+	utils := NewStringUtils(cfg, cfgError, logger)
 
-	result, err := utils.(*utilsString).GenerateRandomString(64)
+	result, err := utils.(*stringUtils).GenerateRandomString(64)
 
 	assert.NoError(t, err)
 	assert.Len(t, result, 64)

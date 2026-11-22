@@ -6,8 +6,7 @@ import (
 	"github.com/pvlearning002/ebvn_assignment/internal/app/model"
 	"github.com/pvlearning002/ebvn_assignment/internal/app/repository"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
-	"github.com/pvlearning002/ebvn_assignment/pkg/utils/utils_log"
-	"github.com/pvlearning002/ebvn_assignment/pkg/utils/utils_string"
+	"github.com/pvlearning002/ebvn_assignment/pkg/utils"
 
 	"errors"
 
@@ -22,33 +21,31 @@ type ShortenURL interface {
 
 // shortenURLService is the implementation of the ShortenURLService interface.
 type shortenURLService struct {
-	urlStorage    repository.URLStorage
-	cfg           config.Config
-	cfgError      config.ConfigError
-	logger        utils_log.CustomLogger
-	custom_string utils_string.UtilsString
+	urlStorage  repository.URLStorage
+	cfg         config.Config
+	logger      utils.LoggerUtils
+	stringUtils utils.StringUtils
 }
 
 // NewShortenURLService creates a new instance of the shortenURLService with the provided URL storage and configuration.
-func NewShortenURLService(urlStorage repository.URLStorage, cfg config.Config, cfgError config.ConfigError, logger utils_log.CustomLogger, custom_string utils_string.UtilsString) ShortenURL {
+func NewShortenURLService(urlStorage repository.URLStorage, cfg config.Config, logger utils.LoggerUtils, stringUtils utils.StringUtils) ShortenURL {
 	return &shortenURLService{
-		urlStorage:    urlStorage,
-		cfg:           cfg,
-		cfgError:      cfgError,
-		logger:        logger,
-		custom_string: custom_string,
+		urlStorage:  urlStorage,
+		cfg:         cfg,
+		logger:      logger,
+		stringUtils: stringUtils,
 	}
 }
 
 func (self *shortenURLService) generateKey(ctx context.Context) (string, error) {
-	key, err := self.custom_string.GenerateRandomString(self.cfg.KeycodeLengthDefault)
+	key, err := self.stringUtils.GenerateRandomString(self.cfg.KeycodeLengthDefault)
 	if err != nil {
 		self.logger.WriteLogError(err.Error())
 		return self.cfg.StringEmpty, err
 	}
 	url_check, _ := self.urlStorage.GetURL(ctx, key)
 	for url_check != self.cfg.StringEmpty {
-		key, err := self.custom_string.GenerateRandomString(self.cfg.KeycodeLengthDefault)
+		key, err = self.stringUtils.GenerateRandomString(self.cfg.KeycodeLengthDefault)
 		if err != nil {
 			self.logger.WriteLogError(err.Error())
 			return self.cfg.StringEmpty, err
@@ -85,6 +82,7 @@ func (self *shortenURLService) GetUrlByCode(
 	url, err := self.urlStorage.GetURL(ctx, keyCode)
 
 	if errors.Is(err, redis.Nil) {
+		self.logger.WriteLogError(err.Error())
 		return self.cfg.StringEmpty, nil
 	}
 

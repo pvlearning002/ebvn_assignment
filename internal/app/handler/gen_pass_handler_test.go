@@ -1,81 +1,79 @@
 package handler
 
 import (
-	"context"
-	http "net/http"
+	"errors"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	gin "github.com/gin-gonic/gin"
-	mocks "github.com/pvlearning002/ebvn_assignment/internal/app/service/mocks"
-	config "github.com/pvlearning002/ebvn_assignment/internal/config"
-	assert "github.com/stretchr/testify/assert"
+	"github.com/gin-gonic/gin"
+	"github.com/pvlearning002/ebvn_assignment/internal/app/service"
+	"github.com/pvlearning002/ebvn_assignment/internal/config"
+	"github.com/pvlearning002/ebvn_assignment/pkg/utils"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
-type genPassTestAdapter struct {
-	*mocks.GenPass
+type genPassHandlerServiceMock struct{ mock.Mock }
+
+func (m *genPassHandlerServiceMock) GeneratePassword() (string, error) {
+	args := m.Called()
+	return args.String(0), args.Error(1)
 }
 
-func (m *genPassTestAdapter) GenerateRandomString(length int) (string, error) {
-	return "", nil
+var _ service.GenPass = (*genPassHandlerServiceMock)(nil)
+
+func TestNewGenPass(t *testing.T) {
+	got := NewGenPass(
+		new(genPassHandlerServiceMock),
+		config.Config{},
+		config.ConfigError{},
+		utils.NewLoggerUtils(),
+	)
+	require.NotNil(t, got)
+	assert.IsType(t, &genPassHandler{}, got)
 }
 
-func TestGenPassHandler_GeneratePassword(t *testing.T) {
-	// Test implementation
-	t.Parallel()
-	cfg := *config.CreateNewConfig()
-	cfgPaths := *config.CreateNewConfigPaths()
-	cfgStatus := *config.CreateNewConfigStatus()
-	cfgError := *config.CreateNewConfigError()
-	pwd_test := "123456789012"
-	testCases := []struct {
-		name             string
-		setupRequest     func(ctx *gin.Context)
-		setupMockService func(ctx context.Context) *mocks.GenPass
-		expectedStatus   int
-		expectedResponse string
-	}{
-		{
-			name: "service success",
-			setupRequest: func(ctx *gin.Context) {
-				// Setup request context if needed
-				ctx.Request = httptest.NewRequest(http.MethodGet, cfgPaths.PathGetGenPass, nil)
-			},
-			setupMockService: func(ctx context.Context) *mocks.GenPass {
-				mockSvc := mocks.NewGenPass(t)
-				mockSvc.On("GeneratePassword").Return(pwd_test, nil).Once()
-				return mockSvc
-			},
-			expectedStatus:   http.StatusOK,
-			expectedResponse: `{"` + cfg.PasswordTitle + `":"` + pwd_test + `"}`,
-		},
-		{
-			name: "service failed",
-			setupRequest: func(ctx *gin.Context) {
-				// Setup request context if needed
-				ctx.Request = httptest.NewRequest(http.MethodGet, cfgPaths.PathGetGenPass, nil)
-			},
-			setupMockService: func(ctx context.Context) *mocks.GenPass {
-				mockSvc := mocks.NewGenPass(t)
-				mockSvc.On("GeneratePassword").Return(cfg.StringEmpty, assert.AnError).Once()
-				return mockSvc
-			},
-			expectedStatus:   http.StatusInternalServerError,
-			expectedResponse: `{"` + cfgStatus.StatusOK + `":"` + cfgError.ErrorInternalServer + `"}`,
-		},
-	}
+func TestGenPassHandler_GeneratePassword_Success(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	serviceMock := new(genPassHandlerServiceMock)
+	serviceMock.On("GeneratePassword").Return("pass-123", nil).Once()
+	handler := NewGenPass(
+		serviceMock,
+		config.Config{PasswordTitle: "password"},
+		config.ConfigError{},
+		utils.NewLoggerUtils(),
+	)
+	recorder := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(recorder)
+	ctx.Request = httptest.NewRequest(http.MethodGet, "/genpass", nil)
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			recorder := httptest.NewRecorder()
-			ctx, _ := gin.CreateTestContext(recorder)
-			tc.setupRequest(ctx)
-			mockSvc := tc.setupMockService(ctx)
-			handler := NewGenPass(&genPassTestAdapter{GenPass: mockSvc}, cfg, cfgStatus, cfgError)
-			handler.GeneratePassword(ctx)
-			assert.Equal(t, tc.expectedStatus, recorder.Code)
-			assert.Equal(t, tc.expectedResponse, recorder.Body.String())
-		})
-	}
+	handler.GeneratePassword(ctx)
+
+	assert.Equal(t, http.StatusOK, recorder.Code)
+	assert.JSONEq(t, `{"password":"pass-123"}`, recorder.Body.String())
+	serviceMock.AssertExpectations(t)
+}
+
+func TestGenPassHandler_GeneratePassword_ServiceError(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	serviceMock := new(genPassHandlerServiceMock)
+	wantErr := errors.New("password generation failed")
+	serviceMock.On("GeneratePassword").Return("", wantErr).Once()
+	handler := NewGenPass(
+		serviceMock,
+		config.Config{},
+		config.ConfigError{ErrorTitle: "OK", ErrorInternalServer: "internal server error"},
+		utils.NewLoggerUtils(),
+	)
+	recorder := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(recorder)
+	ctx.Request = httptest.NewRequest(http.MethodGet, "/genpass", nil)
+
+	handler.GeneratePassword(ctx)
+
+	assert.Equal(t, http.StatusInternalServerError, recorder.Code)
+	assert.JSONEq(t, `{"OK":"internal server error"}`, recorder.Body.String())
+	serviceMock.AssertExpectations(t)
 }

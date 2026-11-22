@@ -7,404 +7,212 @@ import (
 
 	"github.com/pvlearning002/ebvn_assignment/internal/app/repository"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
+	"github.com/pvlearning002/ebvn_assignment/pkg/utils"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
-// Mock GenPass
-type MockGenPass struct {
+type shortenServiceStringUtilsMock struct {
 	mock.Mock
+	generate func(int) (string, error)
 }
 
-func (m *MockGenPass) GenerateRandomString(length int) (string, error) {
+func (m *shortenServiceStringUtilsMock) GenerateRandomString(length int) (string, error) {
+	if m.generate != nil {
+		return m.generate(length)
+	}
 	args := m.Called(length)
 	return args.String(0), args.Error(1)
 }
 
-func (m *MockGenPass) GeneratePassword() (string, error) {
-	args := m.Called()
-	return args.String(0), args.Error(1)
-}
+type shortenServiceStorageMock struct{ mock.Mock }
 
-// Mock URLStorage
-type MockURLStorage struct {
-	mock.Mock
-}
-
-func (m *MockURLStorage) GetURL(
-	ctx context.Context,
-	key string,
-) (string, error) {
+func (m *shortenServiceStorageMock) GetURL(ctx context.Context, key string) (string, error) {
 	args := m.Called(ctx, key)
 	return args.String(0), args.Error(1)
 }
-
-func (m *MockURLStorage) StoreURL(
-	ctx context.Context,
-	key string,
-	url string,
-) error {
-	args := m.Called(ctx, key, url)
-	return args.Error(0)
+func (m *shortenServiceStorageMock) StoreURL(ctx context.Context, key, value string) error {
+	return m.Called(ctx, key, value).Error(0)
 }
 
-// Compile-time interface checks
-var _ GenPass = (*MockGenPass)(nil)
-var _ repository.URLStorage = (*MockURLStorage)(nil)
+type shortenServiceLoggerMock struct{ mock.Mock }
 
-// Create test service
-func createTestShortenURLService(
-	storage *MockURLStorage,
-	genPass *MockGenPass,
-) ShortenURL {
-	cfg := config.Config{
-		KeycodeLengthDefault: 6,
-		StringEmpty:          "",
-	}
-
-	return NewShortenURLService(
-		storage,
-		genPass,
-		cfg,
-		config.ConfigError{},
-		nil,
-	)
+func (m *shortenServiceLoggerMock) SetLogLevel(level string) { m.Called(level) }
+func (m *shortenServiceLoggerMock) GetPathFunction(skip ...int) string {
+	return m.Called(skip).String(0)
+}
+func (m *shortenServiceLoggerMock) BuildLogMessage(message string, skip ...int) string {
+	return m.Called(message, skip).String(0)
+}
+func (m *shortenServiceLoggerMock) WriteLogInfo(message string, skip ...int) { m.Called(message, skip) }
+func (m *shortenServiceLoggerMock) WriteLogError(message string, skip ...int) {
+	m.Called(message, skip)
+}
+func (m *shortenServiceLoggerMock) WriteLogDebug(message string, skip ...int) {
+	m.Called(message, skip)
+}
+func (m *shortenServiceLoggerMock) WriteLogWarning(message string, skip ...int) {
+	m.Called(message, skip)
 }
 
-// Test CreateShortenLink
-func TestCreateShortenLink(t *testing.T) {
+var _ utils.StringUtils = (*shortenServiceStringUtilsMock)(nil)
+var _ utils.LoggerUtils = (*shortenServiceLoggerMock)(nil)
+var _ repository.URLStorage = (*shortenServiceStorageMock)(nil)
+
+func newShortenServiceForTest(storage *shortenServiceStorageMock, stringUtils *shortenServiceStringUtilsMock, logger *shortenServiceLoggerMock) ShortenURL {
+	return NewShortenURLService(storage,
+		config.Config{KeycodeLengthDefault: 6, StringEmpty: ""}, logger, stringUtils)
+}
+
+func TestNewShortenURLService(t *testing.T) {
+	got := newShortenServiceForTest(new(shortenServiceStorageMock), new(shortenServiceStringUtilsMock), new(shortenServiceLoggerMock))
+	require.NotNil(t, got)
+	assert.IsType(t, &shortenURLService{}, got)
+}
+
+func TestCreateShortenLink_Success(t *testing.T) {
 	ctx := context.Background()
-	originalURL := "https://www.google.com"
+	storage := new(shortenServiceStorageMock)
+	stringUtils := new(shortenServiceStringUtilsMock)
+	stringUtils.On("GenerateRandomString", 6).Return("abc123", nil).Once()
+	storage.On("GetURL", ctx, "abc123").Return("", nil).Once()
+	storage.On("StoreURL", ctx, "abc123", "https://example.com").Return(nil).Once()
 
-	t.Run("success", func(t *testing.T) {
-		mockStorage := new(MockURLStorage)
-		mockGenPass := new(MockGenPass)
+	got, err := newShortenServiceForTest(storage, stringUtils, new(shortenServiceLoggerMock)).CreateShortenLink(ctx, "https://example.com")
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	assert.Equal(t, "abc123", got.KeyCode)
+	assert.Equal(t, "Shorten URL generated successfully", got.Message)
+	stringUtils.AssertExpectations(t)
+	storage.AssertExpectations(t)
+}
 
-		service := createTestShortenURLService(
-			mockStorage,
-			mockGenPass,
-		)
+func TestCreateShortenLink_RetriesCollision(t *testing.T) {
+	ctx := context.Background()
+	keys := []string{"taken1", "free22"}
+	stringUtils := &shortenServiceStringUtilsMock{generate: func(length int) (string, error) {
+		require.Equal(t, 6, length)
+		if len(keys) == 0 {
+			t.Fatal("generated more keys than expected")
+		}
+		key := keys[0]
+		keys = keys[1:]
+		return key, nil
+	}}
+	storage := new(shortenServiceStorageMock)
+	storage.On("GetURL", ctx, "taken1").Return("https://used.example", nil).Once()
+	storage.On("GetURL", ctx, "free22").Return("", nil).Once()
+	storage.On("StoreURL", ctx, "free22", "https://example.com").Return(nil).Once()
 
-		mockGenPass.On(
-			"GenerateRandomString",
-			6,
-		).Return("abc123", nil).Once()
+	got, err := newShortenServiceForTest(storage, stringUtils, new(shortenServiceLoggerMock)).CreateShortenLink(ctx, "https://example.com")
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	assert.Equal(t, "free22", got.KeyCode)
+	storage.AssertExpectations(t)
+}
 
-		mockStorage.On(
-			"GetURL",
-			mock.Anything,
-			"abc123",
-		).Return("", nil).Once()
+func TestCreateShortenLink_GenerationError(t *testing.T) {
+	ctx := context.Background()
+	wantErr := errors.New("key generation failed")
+	stringUtils := new(shortenServiceStringUtilsMock)
+	stringUtils.On("GenerateRandomString", 6).Return("", wantErr).Once()
+	logger := new(shortenServiceLoggerMock)
+	logger.On("WriteLogError", wantErr.Error(), mock.Anything).Return().Twice()
+	storage := new(shortenServiceStorageMock)
 
-		mockStorage.On(
-			"StoreURL",
-			mock.Anything,
-			"abc123",
-			originalURL,
-		).Return(nil).Once()
+	got, err := newShortenServiceForTest(storage, stringUtils, logger).CreateShortenLink(ctx, "https://example.com")
+	require.ErrorIs(t, err, wantErr)
+	require.NotNil(t, got)
+	assert.Empty(t, got.KeyCode)
+	assert.Equal(t, wantErr.Error(), got.Message)
+	storage.AssertNotCalled(t, "StoreURL", mock.Anything, mock.Anything, mock.Anything)
+	logger.AssertExpectations(t)
+}
 
-		result, err := service.CreateShortenLink(
-			ctx,
-			originalURL,
-		)
+func TestCreateShortenLink_GenerationErrorDuringRetry(t *testing.T) {
+	ctx := context.Background()
+	wantErr := errors.New("key generation failed during retry")
+	generationCount := 0
+	stringUtils := &shortenServiceStringUtilsMock{generate: func(length int) (string, error) {
+		require.Equal(t, 6, length)
+		generationCount++
+		if generationCount == 1 {
+			return "taken1", nil
+		}
+		return "", wantErr
+	}}
+	storage := new(shortenServiceStorageMock)
+	storage.On("GetURL", ctx, "taken1").Return("https://used.example", nil).Once()
+	logger := new(shortenServiceLoggerMock)
+	// generateKey logs the retry error, then CreateShortenLink logs it again.
+	logger.On("WriteLogError", wantErr.Error(), mock.Anything).Return().Twice()
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
-		assert.Equal(t, "abc123", result.KeyCode)
-		assert.Equal(
-			t,
-			"Shorten URL generated successfully",
-			result.Message,
-		)
+	got, err := newShortenServiceForTest(storage, stringUtils, logger).CreateShortenLink(ctx, "https://example.com")
+	require.ErrorIs(t, err, wantErr)
+	require.NotNil(t, got)
+	assert.Empty(t, got.KeyCode)
+	assert.Equal(t, wantErr.Error(), got.Message)
+	assert.Equal(t, 2, generationCount)
+	storage.AssertNotCalled(t, "StoreURL", mock.Anything, mock.Anything, mock.Anything)
+	storage.AssertExpectations(t)
+	logger.AssertExpectations(t)
+}
 
-		mockGenPass.AssertExpectations(t)
-		mockStorage.AssertExpectations(t)
-	})
+func TestCreateShortenLink_StoreError(t *testing.T) {
+	ctx := context.Background()
+	wantErr := errors.New("redis store failed")
+	storage := new(shortenServiceStorageMock)
+	stringUtils := new(shortenServiceStringUtilsMock)
+	stringUtils.On("GenerateRandomString", 6).Return("abc123", nil).Once()
+	storage.On("GetURL", ctx, "abc123").Return("", nil).Once()
+	storage.On("StoreURL", ctx, "abc123", "https://example.com").Return(wantErr).Once()
+	logger := new(shortenServiceLoggerMock)
+	logger.On("WriteLogError", wantErr.Error(), mock.Anything).Return().Once()
 
-	t.Run("generate password error", func(t *testing.T) {
-		mockStorage := new(MockURLStorage)
-		mockGenPass := new(MockGenPass)
-
-		service := createTestShortenURLService(
-			mockStorage,
-			mockGenPass,
-		)
-
-		expectedError := errors.New("generate random string failed")
-
-		mockGenPass.On(
-			"GenerateRandomString",
-			6,
-		).Return("", expectedError).Once()
-
-		result, err := service.CreateShortenLink(
-			ctx,
-			originalURL,
-		)
-
-		assert.Error(t, err)
-		assert.Equal(t, expectedError, err)
-		assert.NotNil(t, result)
-		assert.Equal(t, "", result.KeyCode)
-		assert.Equal(t, expectedError.Error(), result.Message)
-
-		mockGenPass.AssertExpectations(t)
-		mockStorage.AssertNotCalled(
-			t,
-			"StoreURL",
-			mock.Anything,
-			mock.Anything,
-			mock.Anything,
-		)
-	})
-
-	t.Run("storage error", func(t *testing.T) {
-		mockStorage := new(MockURLStorage)
-		mockGenPass := new(MockGenPass)
-
-		service := createTestShortenURLService(
-			mockStorage,
-			mockGenPass,
-		)
-
-		expectedError := errors.New("redis store failed")
-
-		mockGenPass.On(
-			"GenerateRandomString",
-			6,
-		).Return("abc123", nil).Once()
-
-		mockStorage.On(
-			"GetURL",
-			mock.Anything,
-			"abc123",
-		).Return("", nil).Once()
-
-		mockStorage.On(
-			"StoreURL",
-			mock.Anything,
-			"abc123",
-			originalURL,
-		).Return(expectedError).Once()
-
-		result, err := service.CreateShortenLink(
-			ctx,
-			originalURL,
-		)
-
-		assert.Error(t, err)
-		assert.Equal(t, expectedError, err)
-		assert.NotNil(t, result)
-		assert.Equal(t, "", result.KeyCode)
-		assert.Equal(t, expectedError.Error(), result.Message)
-
-		mockGenPass.AssertExpectations(t)
-		mockStorage.AssertExpectations(t)
-	})
-
-	t.Run("generate new key when key already exists", func(t *testing.T) {
-		mockStorage := new(MockURLStorage)
-		mockGenPass := new(MockGenPass)
-
-		service := createTestShortenURLService(
-			mockStorage,
-			mockGenPass,
-		)
-
-		mockGenPass.On(
-			"GenerateRandomString",
-			6,
-		).Return("abc123", nil).Once()
-
-		mockStorage.On(
-			"GetURL",
-			mock.Anything,
-			"abc123",
-		).Return("https://existing.com", nil).Once()
-
-		mockGenPass.On(
-			"GenerateRandomString",
-			6,
-		).Return("xyz789", nil).Once()
-
-		mockStorage.On(
-			"GetURL",
-			mock.Anything,
-			"xyz789",
-		).Return("", nil).Once()
-
-		mockStorage.On(
-			"StoreURL",
-			mock.Anything,
-			"xyz789",
-			originalURL,
-		).Return(nil).Once()
-
-		result, err := service.CreateShortenLink(
-			ctx,
-			originalURL,
-		)
-
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
-		assert.Equal(t, "xyz789", result.KeyCode)
-		assert.Equal(
-			t,
-			"Shorten URL generated successfully",
-			result.Message,
-		)
-
-		mockGenPass.AssertExpectations(t)
-		mockStorage.AssertExpectations(t)
-	})
-
-	t.Run("generate password error during retry", func(t *testing.T) {
-		mockStorage := new(MockURLStorage)
-		mockGenPass := new(MockGenPass)
-
-		service := createTestShortenURLService(
-			mockStorage,
-			mockGenPass,
-		)
-
-		expectedError := errors.New("generate random string failed")
-
-		mockGenPass.On(
-			"GenerateRandomString",
-			6,
-		).Return("abc123", nil).Once()
-
-		mockStorage.On(
-			"GetURL",
-			mock.Anything,
-			"abc123",
-		).Return("https://existing.com", nil).Once()
-
-		mockGenPass.On(
-			"GenerateRandomString",
-			6,
-		).Return("", expectedError).Once()
-
-		result, err := service.CreateShortenLink(
-			ctx,
-			originalURL,
-		)
-
-		assert.Error(t, err)
-		assert.Equal(t, expectedError, err)
-		assert.NotNil(t, result)
-		assert.Equal(t, "", result.KeyCode)
-		assert.Equal(t, expectedError.Error(), result.Message)
-
-		mockGenPass.AssertExpectations(t)
-		mockStorage.AssertExpectations(t)
-	})
-
-	t.Run("GetURL error is ignored", func(t *testing.T) {
-		mockStorage := new(MockURLStorage)
-		mockGenPass := new(MockGenPass)
-
-		service := createTestShortenURLService(
-			mockStorage,
-			mockGenPass,
-		)
-
-		mockGenPass.On(
-			"GenerateRandomString",
-			6,
-		).Return("abc123", nil).Once()
-
-		mockStorage.On(
-			"GetURL",
-			mock.Anything,
-			"abc123",
-		).Return("", errors.New("redis get failed")).Once()
-
-		mockStorage.On(
-			"StoreURL",
-			mock.Anything,
-			"abc123",
-			originalURL,
-		).Return(nil).Once()
-
-		result, err := service.CreateShortenLink(
-			ctx,
-			originalURL,
-		)
-
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
-		assert.Equal(t, "abc123", result.KeyCode)
-
-		mockGenPass.AssertExpectations(t)
-		mockStorage.AssertExpectations(t)
-	})
+	got, err := newShortenServiceForTest(storage, stringUtils, logger).CreateShortenLink(ctx, "https://example.com")
+	require.ErrorIs(t, err, wantErr)
+	require.NotNil(t, got)
+	assert.Empty(t, got.KeyCode)
+	assert.Equal(t, wantErr.Error(), got.Message)
+	logger.AssertExpectations(t)
+	storage.AssertExpectations(t)
 }
 
 func TestGetUrlByCode(t *testing.T) {
-	cfg := config.Config{
-		StringEmpty: "",
-	}
-	testCases := []struct {
-		name          string
-		keyCode       string
-		mockURL       string
-		mockError     error
-		expectedURL   string
-		expectedError error
+	ctx := context.Background()
+	tests := []struct {
+		name      string
+		value     string
+		getErr    error
+		wantValue string
+		wantErr   error
+		wantLog   bool
 	}{
-		{
-			name:        "normal case",
-			keyCode:     "abc123",
-			mockURL:     "https://www.google.com",
-			mockError:   nil,
-			expectedURL: "https://www.google.com",
-		},
-		{
-			name:          "error when getting URL",
-			keyCode:       "abc123",
-			mockURL:       "",
-			mockError:     errors.New("redis connection error"),
-			expectedURL:   cfg.StringEmpty,
-			expectedError: errors.New("redis connection error"),
-		},
+		{name: "found", value: "https://example.com", wantValue: "https://example.com"},
+		{name: "missing", getErr: redis.Nil, wantLog: true},
+		{name: "storage error", getErr: errors.New("redis unavailable"), wantErr: errors.New("redis unavailable"), wantLog: true},
 	}
-
-	for _, tc := range testCases {
+	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			mockStorage := new(MockURLStorage)
-
-			mockStorage.On(
-				"GetURL",
-				mock.Anything,
-				tc.keyCode,
-			).Return(tc.mockURL, tc.mockError).Once()
-
-			service := &shortenURLService{
-				urlStorage: mockStorage,
-				cfg: config.Config{
-					StringEmpty: "",
-				},
+			storage := new(shortenServiceStorageMock)
+			storage.On("GetURL", ctx, "abc123").Return(tc.value, tc.getErr).Once()
+			logger := new(shortenServiceLoggerMock)
+			if tc.wantLog {
+				logger.On("WriteLogError", tc.getErr.Error(), mock.Anything).Return().Once()
 			}
 
-			actualURL, err := service.GetUrlByCode(
-				context.Background(),
-				tc.keyCode,
-			)
-
-			assert.Equal(t, tc.expectedURL, actualURL)
-
-			if tc.expectedError != nil {
-				assert.EqualError(
-					t,
-					err,
-					tc.expectedError.Error(),
-				)
+			got, err := newShortenServiceForTest(storage, new(shortenServiceStringUtilsMock), logger).GetUrlByCode(ctx, "abc123")
+			assert.Equal(t, tc.wantValue, got)
+			if tc.wantErr != nil {
+				require.Error(t, err)
+				assert.EqualError(t, err, tc.wantErr.Error())
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
-
-			mockStorage.AssertExpectations(t)
+			storage.AssertExpectations(t)
+			logger.AssertExpectations(t)
 		})
 	}
 }

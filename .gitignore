@@ -13,3 +13,5 @@ coverage.tmp
 
 #DEMO
 _func_demo/
+
+.gocache/

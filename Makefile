@@ -1,7 +1,7 @@
 
 COVERAGE_THRESHOLD=80
 
-COVERAGE_EXCLUDE = main\.go|api\.go|redis_client_mock\.go|test|docs|_func_demo|config|internal/service/mocks/|internal/service/services_mocks/|pkg/logger/|pkg/utils/utils_log/|pkg/utils/utils_redis/
+COVERAGE_EXCLUDE = main\.go|api\.go|redis_client_mock\.go|test|docs|_func_demo|config|internal/app/service/mocks/|internal/app/service/services_mocks/|pkg/logger/|pkg/utils/utils_log/|pkg/utils/utils_redis/
 
 .PHONY: run swag test swag-run
 

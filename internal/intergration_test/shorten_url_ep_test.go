@@ -7,11 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/alicebob/miniredis/v2"
-	"github.com/redis/go-redis/v9"
-
-	"github.com/pvlearning002/ebvn_assignment/internal/api"
-	"github.com/pvlearning002/ebvn_assignment/internal/config"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type shortenLinkResponse struct {
@@ -19,257 +16,83 @@ type shortenLinkResponse struct {
 	Message string `json:"message"`
 }
 
-type errorResponse struct {
-	Title string `json:"title"`
+func sendShortenRequest(engine interface {
+	ServeHTTP(http.ResponseWriter, *http.Request)
+}, body string) *httptest.ResponseRecorder {
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodPost, "/v1/links/shorten", bytes.NewBufferString(body))
+	request.Header.Set("Content-Type", "application/json")
+	engine.ServeHTTP(recorder, request)
+	return recorder
 }
 
-// setupTestServer initializes the API server with a real Redis repository.
-func setupTestServer(t *testing.T) (*miniredis.Miniredis, *redis.Client, http.Handler) {
+func parseShortenResponse(t *testing.T, body []byte) shortenLinkResponse {
 	t.Helper()
-
-	miniRedis := miniredis.RunT(t)
-
-	redisClient := redis.NewClient(&redis.Options{
-		Addr: miniRedis.Addr(),
-	})
-
-	t.Cleanup(func() {
-		_ = redisClient.Close()
-	})
-
-	cfg := config.CreateNewConfig()
-	cfgStatus := config.CreateNewConfigStatus()
-	cfgError := config.CreateNewConfigError()
-	cfgPaths := config.CreateNewConfigPaths()
-	cfgHealthCheck := config.CreateNewConfigHealthCheck()
-	cfgParameter := config.CreateNewConfigParameter()
-
-	router := api.NewEngine(
-		cfg,
-		cfgStatus,
-		cfgError,
-		cfgPaths,
-		cfgHealthCheck,
-		cfgParameter,
-		redisClient,
-	)
-
-	return miniRedis, redisClient, router
-}
-
-// createShortenLinkRequest creates a valid HTTP request.
-func createShortenLinkRequest() *http.Request {
-	body := `{
-		"expiration_time": 3600,
-		"url": "https://www.google.com"
-	}`
-
-	req := httptest.NewRequest(
-		http.MethodPost,
-		"/v1/links/shorten",
-		bytes.NewBufferString(body),
-	)
-
-	req.Header.Set("Content-Type", "application/json")
-
-	return req
-}
-
-// parseShortenLinkResponse parses the API response.
-func parseShortenLinkResponse(t *testing.T, body []byte) shortenLinkResponse {
-	t.Helper()
-
-	var response shortenLinkResponse
-
-	if err := json.Unmarshal(body, &response); err != nil {
-		t.Fatalf("Failed to parse response: %v. Body: %s", err, string(body))
-	}
-
-	return response
+	var result shortenLinkResponse
+	require.NoError(t, json.Unmarshal(body, &result), "response body: %s", string(body))
+	return result
 }
 
 func TestCreateShortenLink_Integration(t *testing.T) {
 	tests := []struct {
-		name           string
-		requestBody    string
-		expectedStatus int
-		expectCode     bool
+		name             string
+		body             string
+		wantStatus       int
+		wantNonEmptyCode bool
 	}{
 		{
-			name: "Success",
-			requestBody: `{
-				"expiration_time": 3600,
-				"url": "https://www.google.com"
-			}`,
-			expectedStatus: http.StatusOK,
-			expectCode:     true,
+			name:             "valid request",
+			body:             `{"expiration_time":3600,"url":"https://www.google.com"}`,
+			wantStatus:       http.StatusOK,
+			wantNonEmptyCode: true,
 		},
-		{
-			name:           "Invalid JSON",
-			requestBody:    `{"url":}`,
-			expectedStatus: http.StatusBadRequest,
-		},
-		{
-			name: "Missing expiration time",
-			requestBody: `{
-				"url": "https://www.google.com"
-			}`,
-			expectedStatus: http.StatusBadRequest,
-		},
-		{
-			name: "Invalid expiration time",
-			requestBody: `{
-				"expiration_time": 100,
-				"url": "https://www.google.com"
-			}`,
-			expectedStatus: http.StatusBadRequest,
-		},
-		{
-			name: "Invalid URL",
-			requestBody: `{
-				"expiration_time": 3600,
-				"url": "invalid-url"
-			}`,
-			expectedStatus: http.StatusBadRequest,
-		},
+		{name: "invalid JSON", body: `{"url":}`, wantStatus: http.StatusBadRequest},
+		{name: "missing expiration", body: `{"url":"https://www.google.com"}`, wantStatus: http.StatusBadRequest},
+		{name: "expiration below minimum", body: `{"expiration_time":100,"url":"https://www.google.com"}`, wantStatus: http.StatusBadRequest},
+		{name: "invalid URL", body: `{"expiration_time":3600,"url":"not-a-url"}`, wantStatus: http.StatusBadRequest},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, _, router := setupTestServer(t)
-
-			req := httptest.NewRequest(
-				http.MethodPost,
-				"/v1/links/shorten",
-				bytes.NewBufferString(tt.requestBody),
-			)
-
-			req.Header.Set("Content-Type", "application/json")
-
-			recorder := httptest.NewRecorder()
-
-			router.ServeHTTP(recorder, req)
-
-			if recorder.Code != tt.expectedStatus {
-				t.Fatalf(
-					"Expected status %d, got %d. Response: %s",
-					tt.expectedStatus,
-					recorder.Code,
-					recorder.Body.String(),
-				)
-			}
-
-			if tt.expectCode {
-				response := parseShortenLinkResponse(t, recorder.Body.Bytes())
-
-				if response.Code == "" {
-					t.Error("Expected non-empty shorten URL code")
-				}
-
-				if response.Message == "" {
-					t.Error("Expected non-empty response message")
-				}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			_, engine, _, _, _ := setupIntegrationAPI(t)
+			recorder := sendShortenRequest(engine, tc.body)
+			assert.Equal(t, tc.wantStatus, recorder.Code, recorder.Body.String())
+			if tc.wantNonEmptyCode {
+				result := parseShortenResponse(t, recorder.Body.Bytes())
+				assert.NotEmpty(t, result.Code)
+				assert.NotEmpty(t, result.Message)
 			}
 		})
 	}
 }
 
 func TestCreateShortenLink_RedisConnectionError_Integration(t *testing.T) {
-	miniRedis, _, router := setupTestServer(t)
+	redisServer, engine, _, _, _ := setupIntegrationAPI(t)
+	redisServer.Close()
 
-	// Stop Redis to simulate a connection failure.
-	miniRedis.Close()
-
-	req := createShortenLinkRequest()
-
-	recorder := httptest.NewRecorder()
-
-	router.ServeHTTP(recorder, req)
-
-	if recorder.Code != http.StatusInternalServerError {
-		t.Fatalf(
-			"Expected status %d, got %d. Response: %s",
-			http.StatusInternalServerError,
-			recorder.Code,
-			recorder.Body.String(),
-		)
-	}
+	recorder := sendShortenRequest(engine, `{"expiration_time":3600,"url":"https://www.google.com"}`)
+	assert.Equal(t, http.StatusInternalServerError, recorder.Code, recorder.Body.String())
 }
 
 func TestRedirectToOriginalURL_Integration(t *testing.T) {
-	_, _, router := setupTestServer(t)
-
-	// First create a shortened URL.
-	req := createShortenLinkRequest()
-
-	recorder := httptest.NewRecorder()
-
-	router.ServeHTTP(recorder, req)
-
-	if recorder.Code != http.StatusOK {
-		t.Fatalf(
-			"Failed to create shortened URL. Status: %d, Response: %s",
-			recorder.Code,
-			recorder.Body.String(),
-		)
-	}
-
-	response := parseShortenLinkResponse(t, recorder.Body.Bytes())
-
-	if response.Code == "" {
-		t.Fatal("Shorten URL code is empty")
-	}
-
-	// Redirect using the generated code.
-	redirectReq := httptest.NewRequest(
-		http.MethodGet,
-		"/v1/links/redirect/"+response.Code,
-		nil,
-	)
+	_, engine, _, _, _ := setupIntegrationAPI(t)
+	recorder := sendShortenRequest(engine, `{"expiration_time":3600,"url":"https://www.google.com"}`)
+	require.Equal(t, http.StatusOK, recorder.Code, recorder.Body.String())
+	result := parseShortenResponse(t, recorder.Body.Bytes())
+	require.NotEmpty(t, result.Code)
 
 	redirectRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, "/v1/links/redirect/"+result.Code, nil)
+	engine.ServeHTTP(redirectRecorder, request)
 
-	router.ServeHTTP(redirectRecorder, redirectReq)
-
-	if redirectRecorder.Code != http.StatusMovedPermanently {
-		t.Fatalf(
-			"Expected status %d, got %d. Response: %s",
-			http.StatusMovedPermanently,
-			redirectRecorder.Code,
-			redirectRecorder.Body.String(),
-		)
-	}
-
-	location := redirectRecorder.Header().Get("Location")
-
-	if location != "https://www.google.com" {
-		t.Errorf(
-			"Expected redirect URL %s, got %s",
-			"https://www.google.com",
-			location,
-		)
-	}
+	assert.Equal(t, http.StatusMovedPermanently, redirectRecorder.Code)
+	assert.Equal(t, "https://www.google.com", redirectRecorder.Header().Get("Location"))
 }
 
 func TestRedirectToOriginalURL_NotFound_Integration(t *testing.T) {
-	_, _, router := setupTestServer(t)
-
-	req := httptest.NewRequest(
-		http.MethodGet,
-		"/v1/links/redirect/nonexistent123",
-		nil,
-	)
-
+	_, engine, _, _, _ := setupIntegrationAPI(t)
 	recorder := httptest.NewRecorder()
-
-	router.ServeHTTP(recorder, req)
-
-	if recorder.Code != http.StatusNotFound {
-		t.Fatalf(
-			"Expected status %d, got %d. Response: %s",
-			http.StatusNotFound,
-			recorder.Code,
-			recorder.Body.String(),
-		)
-	}
+	request := httptest.NewRequest(http.MethodGet, "/v1/links/redirect/nonexistent123", nil)
+	engine.ServeHTTP(recorder, request)
+	assert.Equal(t, http.StatusNotFound, recorder.Code, recorder.Body.String())
 }

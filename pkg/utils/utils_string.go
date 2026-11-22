@@ -1,4 +1,4 @@
-package utils_string
+package utils
 
 import (
 	"errors"
@@ -6,28 +6,27 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
-	"github.com/pvlearning002/ebvn_assignment/pkg/utils/utils_log"
 )
 
-type UtilsString interface {
+type StringUtils interface {
 	GenerateRandomString(length int) (string, error)
 }
 
-type utilsString struct {
+type stringUtils struct {
 	cfg      config.Config
 	cfgError config.ConfigError
-	logger   utils_log.CustomLogger
+	logger   LoggerUtils
 }
 
-func NewUtilsString(cfg config.Config, cfgError config.ConfigError, logger utils_log.CustomLogger) UtilsString {
-	return &utilsString{
+func NewStringUtils(cfg config.Config, cfgError config.ConfigError, logger LoggerUtils) StringUtils {
+	return &stringUtils{
 		cfg:      cfg,
 		cfgError: cfgError,
 		logger:   logger,
 	}
 }
 
-func (self *utilsString) GenerateRandomString(length int) (string, error) {
+func (self *stringUtils) GenerateRandomString(length int) (string, error) {
 	if length <= 0 {
 		self.logger.WriteLogError(self.cfgError.ErrorLengthZero)
 		return self.cfg.StringEmpty, errors.New(self.cfgError.ErrorLengthZero)

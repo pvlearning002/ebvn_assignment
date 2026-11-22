@@ -2,12 +2,11 @@ package main
 
 // cspell:ignore pvlearning ebvn
 import (
-	"uuid"
+	"github.com/google/uuid"
 
 	"github.com/pvlearning002/ebvn_assignment/internal/api"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
-	"github.com/pvlearning002/ebvn_assignment/pkg/utils/utils_log"
-	redis_utils "github.com/pvlearning002/ebvn_assignment/pkg/utils/utils_redis"
+	"github.com/pvlearning002/ebvn_assignment/pkg/utils"
 )
 
 // @title Bookmark Management API
@@ -23,21 +22,17 @@ func main() {
 	cfgHealthCheck := config.CreateNewConfigHealthCheck()
 	cfgParameter := config.CreateNewConfigParameter()
 	cfgRedis := config.CreateNewConfigRedis()
-	custom_logger := utils_log.NewCustomLogger()
+	logger := utils.NewLoggerUtils()
+	stringUtils := utils.NewStringUtils(*cfg, *cfgError, logger)
+	redisUtils := utils.NewRedisClientUtils(*cfg, *cfgRedis, *cfgError)
 
 	if cfg.InstanceID == cfg.StringEmpty {
 		cfg.InstanceID = uuid.New().String()
 	}
 
-	custom_logger.SetLogLevel(cfg.LogLevel)
+	logger.SetLogLevel(cfg.LogLevel)
 
-	redisClient, err := redis_utils.NewRedisClient(*cfgRedis)
-	if err != nil {
-		panic(err)
-	}
-	defer redisClient.Close()
-
-	engine := api.NewEngine(cfg, cfgStatus, cfgError, cfgPaths, cfgHealthCheck, cfgParameter, redisClient, &custom_logger)
+	engine := api.NewEngine(cfg, cfgStatus, cfgError, cfgPaths, cfgHealthCheck, cfgParameter, &stringUtils, &redisUtils, &logger)
 	if err := engine.Start(); err != nil {
 		panic(err)
 	}

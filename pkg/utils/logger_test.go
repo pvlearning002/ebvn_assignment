@@ -1,4 +1,4 @@
-package utils_log
+package utils
 
 import (
 	"bytes"
@@ -10,13 +10,13 @@ import (
 )
 
 func TestNewCustomLogger(t *testing.T) {
-	logger := NewCustomLogger()
+	logger := NewLoggerUtils()
 
 	if logger == nil {
 		t.Fatal("NewCustomLogger() returned nil")
 	}
 
-	_, ok := logger.(*customLogger)
+	_, ok := logger.(*loggerUtils)
 	if !ok {
 		t.Error("NewCustomLogger() did not return *customLogger")
 	}
@@ -26,7 +26,7 @@ func TestSetLogLevel(t *testing.T) {
 	originalLevel := zerolog.GlobalLevel()
 	defer zerolog.SetGlobalLevel(originalLevel)
 
-	logger := NewCustomLogger()
+	logger := NewLoggerUtils()
 
 	tests := []struct {
 		name          string
@@ -87,7 +87,7 @@ func TestSetLogLevel(t *testing.T) {
 }
 
 func TestGetPathFunction(t *testing.T) {
-	logger := NewCustomLogger()
+	logger := NewLoggerUtils()
 
 	tests := []struct {
 		name string
@@ -123,7 +123,7 @@ func TestGetPathFunction(t *testing.T) {
 }
 
 func TestGetPathFunction_InvalidSkip(t *testing.T) {
-	logger := NewCustomLogger()
+	logger := NewLoggerUtils()
 
 	result := logger.GetPathFunction(999999)
 
@@ -137,7 +137,7 @@ func TestGetPathFunction_InvalidSkip(t *testing.T) {
 }
 
 func TestBuildLogMessage(t *testing.T) {
-	logger := NewCustomLogger()
+	logger := NewLoggerUtils()
 
 	tests := []struct {
 		name    string
@@ -185,25 +185,25 @@ func TestBuildLogMessage(t *testing.T) {
 }
 
 func TestWriteLogInfo(t *testing.T) {
-	testWriteLog(t, "info", func(logger CustomLogger) {
+	testWriteLog(t, "info", func(logger LoggerUtils) {
 		logger.WriteLogInfo("test info message", 1)
 	})
 }
 
 func TestWriteLogError(t *testing.T) {
-	testWriteLog(t, "error", func(logger CustomLogger) {
+	testWriteLog(t, "error", func(logger LoggerUtils) {
 		logger.WriteLogError("test error message", 1)
 	})
 }
 
 func TestWriteLogDebug(t *testing.T) {
-	testWriteLog(t, "debug", func(logger CustomLogger) {
+	testWriteLog(t, "debug", func(logger LoggerUtils) {
 		logger.WriteLogDebug("test debug message", 1)
 	})
 }
 
 func TestWriteLogWarning(t *testing.T) {
-	testWriteLog(t, "warn", func(logger CustomLogger) {
+	testWriteLog(t, "warn", func(logger LoggerUtils) {
 		logger.WriteLogWarning("test warning message", 1)
 	})
 }
@@ -211,7 +211,7 @@ func TestWriteLogWarning(t *testing.T) {
 func testWriteLog(
 	t *testing.T,
 	level string,
-	writeFunc func(CustomLogger),
+	writeFunc func(LoggerUtils),
 ) {
 	t.Helper()
 
@@ -228,7 +228,7 @@ func testWriteLog(
 		zerolog.SetGlobalLevel(originalLevel)
 	}()
 
-	logger := NewCustomLogger()
+	logger := NewLoggerUtils()
 	writeFunc(logger)
 
 	result := output.String()

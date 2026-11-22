@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pvlearning002/ebvn_assignment/internal/app/service"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
-	"github.com/pvlearning002/ebvn_assignment/pkg/utils/utils_log"
+	"github.com/pvlearning002/ebvn_assignment/pkg/utils"
 )
 
 type HealthCheck interface {
@@ -17,10 +17,10 @@ type healthCheckHandler struct {
 	svc      service.HealthCheck
 	cfg      config.Config
 	cfgError config.ConfigError
-	logger   utils_log.CustomLogger
+	logger   utils.LoggerUtils
 }
 
-func NewHealthCheck(svc service.HealthCheck, cfg config.Config, cfgError config.ConfigError, logger utils_log.CustomLogger) HealthCheck {
+func NewHealthCheck(svc service.HealthCheck, cfg config.Config, cfgError config.ConfigError, logger utils.LoggerUtils) HealthCheck {
 	return &healthCheckHandler{svc: svc, cfg: cfg, cfgError: cfgError, logger: logger}
 }
 

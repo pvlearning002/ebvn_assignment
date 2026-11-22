@@ -1,110 +1,88 @@
 package handler
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/google/uuid"
-
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/pvlearning002/ebvn_assignment/internal/app/model"
-	services_mocks "github.com/pvlearning002/ebvn_assignment/internal/app/service/mocks"
+	"github.com/pvlearning002/ebvn_assignment/internal/app/service"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
+	"github.com/pvlearning002/ebvn_assignment/pkg/utils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
-type healthCheckMockAdapter struct {
-	mock *services_mocks.HealthCheck
-	cfg  *config.Config
+type healthCheckHandlerServiceMock struct{ mock.Mock }
+
+func (m *healthCheckHandlerServiceMock) GenerateHealthCheck() (*model.HealthCheckOutput, error) {
+	args := m.Called()
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	result, ok := args.Get(0).(*model.HealthCheckOutput)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return result, args.Error(1)
 }
 
-func (a healthCheckMockAdapter) GenerateHealthCheck() (*model.HealthCheckOutput, error) {
-	return a.mock.GenerateHealthCheck()
+var _ service.HealthCheck = (*healthCheckHandlerServiceMock)(nil)
+
+func TestNewHealthCheck(t *testing.T) {
+	got := NewHealthCheck(
+		new(healthCheckHandlerServiceMock),
+		config.Config{},
+		config.ConfigError{},
+		utils.NewLoggerUtils(),
+	)
+	require.NotNil(t, got)
+	assert.IsType(t, &healthCheckHandler{}, got)
 }
 
-func TestHealthCheckHandler(t *testing.T) {
-	// Implement your test logic here
-	t.Parallel()
-	cfg := *config.CreateNewConfig()
-	cfgStatus := *config.CreateNewConfigStatus()
-	cfgError := *config.CreateNewConfigError()
-	cfgPaths := *config.CreateNewConfigPaths()
-	cfgHealthCheck := *config.CreateNewConfigHealthCheck()
+func TestHealthCheckHandler_GenerateHealthCheck_Success(t *testing.T) {
+	gin.SetMode(gin.TestMode)
 	instanceID := uuid.New()
-	errExpected := errors.New(string(cfgError.ErrorInternalServer))
-	testCases := []struct {
-		name             string
-		setupRequest     func(c *gin.Context)
-		setupMockService func(ctx context.Context) *services_mocks.HealthCheck
-		expectedStatus   int
-		expectedResponse string
-	}{
-		{
-			name: "success case",
-			setupRequest: func(c *gin.Context) {
-				c.Request = httptest.NewRequest(
-					http.MethodGet,
-					cfgPaths.PathGetHealthCheck,
-					nil,
-				)
-			},
-			setupMockService: func(ctx context.Context) *services_mocks.HealthCheck {
-				mockService := &services_mocks.HealthCheck{}
-
-				mockService.On("GenerateHealthCheck").
-					Return(&model.HealthCheckOutput{
-						Message:     cfgStatus.StatusOK,
-						ServiceName: cfgHealthCheck.BookmarkService,
-						InstanceID:  instanceID,
-					}, nil)
-
-				return mockService
-			},
-			expectedStatus: http.StatusOK,
-			expectedResponse: `{"message":"` + cfgStatus.StatusOK +
-				`","service_name":"` + cfgHealthCheck.BookmarkService +
-				`","instance_id":"` + instanceID.String() + `"}`,
-		},
-		{
-			name: "error case 01",
-			setupRequest: func(c *gin.Context) {
-				c.Request = httptest.NewRequest(
-					http.MethodGet,
-					cfgPaths.PathGetHealthCheck,
-					nil,
-				)
-			},
-			setupMockService: func(ctx context.Context) *services_mocks.HealthCheck {
-				mockService := &services_mocks.HealthCheck{}
-
-				mockService.On("GenerateHealthCheck").
-					Return(nil, errExpected)
-
-				return mockService
-			},
-			expectedStatus: http.StatusInternalServerError,
-			expectedResponse: `{"` + cfgError.ErrorTitle + `":"` +
-				cfgError.ErrorInternalServer + `"}`,
-		},
+	want := &model.HealthCheckOutput{
+		Message:          "OK",
+		ServiceName:      "bookmark-service",
+		InstanceID:       instanceID,
+		IsRedisConnected: true,
 	}
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			// Implement your test logic here
-			rec := httptest.NewRecorder()
-			ginCtx, _ := gin.CreateTestContext(rec)
-			tc.setupRequest(ginCtx)
-			mockService := tc.setupMockService(context.Background())
-			handler := NewHealthCheck(healthCheckMockAdapter{mock: mockService, cfg: &cfg}, cfg, cfgError)
-			handler.GenerateHealthCheck(ginCtx)
-			if rec.Code != tc.expectedStatus {
-				t.Errorf("expected status %d, got %d", tc.expectedStatus, rec.Code)
-			}
-			assert.Equal(t, tc.expectedStatus, rec.Code)
-			assert.JSONEq(t, tc.expectedResponse, rec.Body.String())
-		})
+	serviceMock := new(healthCheckHandlerServiceMock)
+	serviceMock.On("GenerateHealthCheck").Return(want, nil).Once()
+	handler := NewHealthCheck(serviceMock, config.Config{}, config.ConfigError{}, utils.NewLoggerUtils())
+	recorder := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(recorder)
+	ctx.Request = httptest.NewRequest(http.MethodGet, "/health", nil)
+
+	handler.GenerateHealthCheck(ctx)
+
+	assert.Equal(t, http.StatusOK, recorder.Code)
+	assert.JSONEq(t, `{"message":"OK","service_name":"bookmark-service","instance_id":"`+instanceID.String()+`","is_redis_connected":true}`, recorder.Body.String())
+	serviceMock.AssertExpectations(t)
+}
+
+func TestHealthCheckHandler_GenerateHealthCheck_ServiceError(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	serviceMock := new(healthCheckHandlerServiceMock)
+	serviceMock.On("GenerateHealthCheck").Return(nil, errors.New("health check failed")).Once()
+	cfgError := config.ConfigError{
+		ErrorTitle:          "Error",
+		ErrorInternalServer: "Internal Server Error",
 	}
+	handler := NewHealthCheck(serviceMock, config.Config{}, cfgError, utils.NewLoggerUtils())
+	recorder := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(recorder)
+	ctx.Request = httptest.NewRequest(http.MethodGet, "/health", nil)
+
+	handler.GenerateHealthCheck(ctx)
+
+	assert.Equal(t, http.StatusInternalServerError, recorder.Code)
+	assert.JSONEq(t, `{"Error":"Internal Server Error"}`, recorder.Body.String())
+	serviceMock.AssertExpectations(t)
 }

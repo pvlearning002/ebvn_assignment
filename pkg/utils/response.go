@@ -1,4 +1,4 @@
-package utils_response
+package utils
 
 import (
 	"errors"
@@ -12,20 +12,20 @@ type ResponseMessage struct {
 	Details any    `json:"details,omitempty"`
 }
 
-type CustomResponse interface {
+type ResponseUtils interface {
 }
 
-type customResponse struct {
+type responseUtils struct {
 	cfgError config.ConfigError
 }
 
-func NewCustomResponse(cfgError config.ConfigError) CustomResponse {
-	return &customResponse{
+func NewResponseUtils(cfgError config.ConfigError) ResponseUtils {
+	return &responseUtils{
 		cfgError: cfgError,
 	}
 }
 
-func (self *customResponse) InputFieldError(err error) ResponseMessage {
+func (self *responseUtils) InputFieldError(err error) ResponseMessage {
 	if is_ok := errors.As(err, &validator.ValidationErrors{}); !is_ok {
 		return ResponseMessage{
 			Message: self.cfgError.ErrorInternalServer,

@@ -1,81 +1,101 @@
 package service
 
 import (
+	"context"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/pvlearning002/ebvn_assignment/internal/app/model"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
+	"github.com/pvlearning002/ebvn_assignment/pkg/utils"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestHealthCheckService_GenerateHealthCheck(t *testing.T) {
-	validUUID := uuid.New()
+type healthCheckRedisUtilsMock struct {
+	containerRunning bool
+}
 
+func (m *healthCheckRedisUtilsMock) NewRedisClient(config.ConfigRedis) (*redis.Client, error) {
+	return nil, nil
+}
+func (m *healthCheckRedisUtilsMock) DockerInspect() ([]byte, error) { return nil, nil }
+func (m *healthCheckRedisUtilsMock) IsRedisConnect(context.Context) (bool, error) {
+	return false, nil
+}
+func (m *healthCheckRedisUtilsMock) IsRedisContainerRunning() bool {
+	return m.containerRunning
+}
+func (m *healthCheckRedisUtilsMock) StoreStringValue(context.Context, string, string) error {
+	return nil
+}
+func (m *healthCheckRedisUtilsMock) GetStringValue(context.Context, string) (string, error) {
+	return "", nil
+}
+
+var _ utils.RedisClientUtils = (*healthCheckRedisUtilsMock)(nil)
+
+func TestNewHealthCheck(t *testing.T) {
+	got := NewHealthCheck(
+		config.Config{},
+		config.ConfigStatus{},
+		config.ConfigHealthCheck{},
+		&healthCheckRedisUtilsMock{},
+	)
+	require.NotNil(t, got)
+	assert.IsType(t, &healthCheckService{}, got)
+}
+
+func TestHealthCheckService_GenerateHealthCheck(t *testing.T) {
+	validID := uuid.New()
 	tests := []struct {
-		name          string
-		instanceID    string
-		expectedError bool
-		expected      *model.HealthCheckOutput
+		name           string
+		instanceID     string
+		redisRunning   bool
+		wantOutput     *model.HealthCheckOutput
+		wantParseError bool
 	}{
 		{
-			name:          "Success - valid UUID",
-			instanceID:    validUUID.String(),
-			expectedError: false,
-			expected: &model.HealthCheckOutput{
-				Message:     "OK",
-				ServiceName: "BookmarkService",
-				InstanceID:  validUUID,
+			name:         "valid UUID and Redis running",
+			instanceID:   validID.String(),
+			redisRunning: true,
+			wantOutput: &model.HealthCheckOutput{
+				Message: "OK", ServiceName: "bookmark-service",
+				InstanceID: validID, IsRedisConnected: true,
 			},
 		},
 		{
-			name:          "Failed - invalid UUID",
-			instanceID:    "invalid-uuid",
-			expectedError: true,
-			expected:      nil,
+			name:         "valid UUID and Redis stopped",
+			instanceID:   validID.String(),
+			redisRunning: false,
+			wantOutput: &model.HealthCheckOutput{
+				Message: "OK", ServiceName: "bookmark-service",
+				InstanceID: validID, IsRedisConnected: false,
+			},
 		},
-		{
-			name:          "Failed - empty UUID",
-			instanceID:    "",
-			expectedError: true,
-			expected:      nil,
-		},
+		{name: "invalid UUID", instanceID: "invalid-uuid", wantParseError: true},
+		{name: "empty UUID", instanceID: "", wantParseError: true},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cfg := config.Config{
-				InstanceID: tt.instanceID,
-			}
-
-			cfgStatus := config.ConfigStatus{
-				StatusOK: "OK",
-			}
-
-			cfgHealthCheck := config.ConfigHealthCheck{
-				BookmarkService: "BookmarkService",
-			}
-
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
 			service := NewHealthCheck(
-				cfg,
-				cfgStatus,
-				cfgHealthCheck,
+				config.Config{InstanceID: tc.instanceID},
+				config.ConfigStatus{StatusOK: "OK"},
+				config.ConfigHealthCheck{BookmarkService: "bookmark-service"},
+				&healthCheckRedisUtilsMock{containerRunning: tc.redisRunning},
 			)
 
-			result, err := service.GenerateHealthCheck()
-
-			if tt.expectedError {
+			got, err := service.GenerateHealthCheck()
+			if tc.wantParseError {
 				require.Error(t, err)
-				assert.Nil(t, result)
-			} else {
-				require.NoError(t, err)
-				require.NotNil(t, result)
-
-				assert.Equal(t, tt.expected.Message, result.Message)
-				assert.Equal(t, tt.expected.ServiceName, result.ServiceName)
-				assert.Equal(t, tt.expected.InstanceID, result.InstanceID)
+				assert.Nil(t, got)
+				return
 			}
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.wantOutput, got)
 		})
 	}
 }

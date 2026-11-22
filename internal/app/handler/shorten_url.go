@@ -7,8 +7,7 @@ import (
 	"github.com/pvlearning002/ebvn_assignment/internal/app/model"
 	"github.com/pvlearning002/ebvn_assignment/internal/app/service"
 	"github.com/pvlearning002/ebvn_assignment/internal/config"
-	"github.com/pvlearning002/ebvn_assignment/pkg/utils/utils_log"
-	"github.com/redis/go-redis/v9"
+	"github.com/pvlearning002/ebvn_assignment/pkg/utils"
 )
 
 type ShortenURL interface {
@@ -22,18 +21,16 @@ type shortenURLHandler struct {
 	cfg               config.Config
 	cfgError          config.ConfigError
 	cfgParameter      config.ConfigParameter
-	client            *redis.Client
-	logger            utils_log.CustomLogger
+	logger            utils.LoggerUtils
 }
 
 // NewShortenURLHandler creates a new instance of the ShortenURLHandler with the provided service.
-func NewShortenURLHandler(svc service.ShortenURL, cfg config.Config, cfgError config.ConfigError, cfgParameter config.ConfigParameter, client *redis.Client, logger utils_log.CustomLogger) *shortenURLHandler {
+func NewShortenURLHandler(svc service.ShortenURL, cfg config.Config, cfgError config.ConfigError, cfgParameter config.ConfigParameter, logger utils.LoggerUtils) *shortenURLHandler {
 	return &shortenURLHandler{
 		shortenURLService: svc,
 		cfg:               cfg,
 		cfgError:          cfgError,
 		cfgParameter:      cfgParameter,
-		client:            client,
 		logger:            logger,
 	}
 }
@@ -50,12 +47,6 @@ func NewShortenURLHandler(svc service.ShortenURL, cfg config.Config, cfgError co
 // @Failure 500 {object} map[string]string
 // @Router /v1/links/shorten [post]
 func (self *shortenURLHandler) CreateShortenLink(ctx *gin.Context) {
-	// Implementation for creating a shortened link
-	if err := self.client.Ping(ctx).Err(); err != nil {
-		self.logger.WriteLogError(err.Error())
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorRedisConnection})
-		return
-	}
 	input := &model.ShortenLinkInput{}
 	if err := ctx.ShouldBindJSON(input); err != nil {
 		self.logger.WriteLogError(err.Error())
