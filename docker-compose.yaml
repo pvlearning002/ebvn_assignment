@@ -1,0 +1,19 @@
+
+version: '3.7'
+
+services:
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  bookmark_services:
+    image: ebvn_test:latest
+    container_name: bookmark_service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+    env_file:
+      - .env

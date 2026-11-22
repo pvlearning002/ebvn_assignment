@@ -1,6 +1,8 @@
 package config
 
-import "github.com/kelseyhightower/envconfig"
+import (
+	"github.com/kelseyhightower/envconfig"
+)
 
 /* General Config */
 
@@ -8,10 +10,15 @@ type Config struct {
 	AppPort               int    `default:"8080" envconfig:"APP_PORT"`
 	AppName               string `default:"MyApp" envconfig:"APP_NAME"`
 	PasswordLengthDefault int    `default:"12" envconfig:"PASSWORD_LENGTH_DEFAULT"`
+	KeycodeLengthDefault  int    `default:"7" envconfig:"KEYCODE_LENGTH_DEFAULT"`
 	Dash                  string `default:"-" envconfig:"DASH"`
 	PasswordTitle         string `default:"Password" envconfig:"PASSWORD_TITLE"`
+	KeyTitle              string `default:"key" envconfig:"KEY_TITLE"`
 	StringEmpty           string `default:"" envconfig:"STRING_EMPTY"`
 	StringSpace           string `default:" " envconfig:"STRING_SPACE"`
+	RedisExpiredTime      int    `default:"3600" envconfig:"REDIS_EXPIRED_TIME"`
+	LogLevel              string `default:"info" envconfig:"LOG_LEVEL"`
+	InstanceID            string `default:"" envconfig:"INSTANCE_ID"`
 }
 
 func NewConfig() (*Config, error) {
@@ -55,10 +62,12 @@ func CreateNewConfigStatus() *ConfigStatus {
 }
 
 /* Status API Paths */
-
 type ConfigPaths struct {
+	PathSwagger        string `default:"/swagger/*any" envconfig:"PATH_GET_GEN_PASS_SWAGGER"`
 	PathGetGenPass     string `default:"/genpass" envconfig:"PATH_GET_GEN_PASS"`
 	PathGetHealthCheck string `default:"/health" envconfig:"PATH_GET_HEALTH_CHECK"`
+	PathPostShortenURL string `default:"/v1/links/shorten" envconfig:"PATH_POST_SHORTEN_URL"`
+	PathGetURL         string `default:"/v1/links/redirect/:code" envconfig:"PATH_GET_URL"`
 }
 
 func NewConfigPaths() (*ConfigPaths, error) {
@@ -80,8 +89,15 @@ func CreateNewConfigPaths() *ConfigPaths {
 
 /* Error Config */
 type ConfigError struct {
-	ErrorInternalServer string `default:"Internal Server Error" envconfig:"ERROR_INTERNAL_SERVER"`
-	ErrorTitle          string `default:"Error" envconfig:"ERROR_TITLE"`
+	ErrorTitle           string `default:"Error" envconfig:"ERROR_TITLE"`
+	ErrorInternalServer  string `default:"Internal Server Error" envconfig:"ERROR_INTERNAL_SERVER"`
+	ErrorInvalidInput    string `default:"Invalid input" envconfig:"ERROR_INVALID_INPUT"`
+	ErrorRedisConnection string `default:"Redis connection error" envconfig:"ERROR_REDIS_CONNECTION"`
+	ErrorNotFound        string `default:"Not Found" envconfig:"ERROR_NOT_FOUND"`
+	ErrorLengthZero      string `default:"Length of string must be greater than 0" envconfig:"ERROR_LENGTH_ZERO"`
+	ErrorInvalidCode     string `default:"Invalid code" envconfig:"ERROR_INVALID_CODE"`
+	ErrorUrlNotFound     string `default:"URL not found" envconfig:"ERROR_URL_NOT_FOUND"`
+	ErrorProcessing      string `default:"Processing Error" envconfig:"ERROR_PROCESSING"`
 }
 
 func NewConfigError() (*ConfigError, error) {
@@ -102,7 +118,6 @@ func CreateNewConfigError() *ConfigError {
 }
 
 /* Health Check Config */
-
 type ConfigHealthCheck struct {
 	BookmarkService string `default:"bookmark_service" envconfig:"BOOKMARK_SERVICE"`
 }
@@ -118,6 +133,51 @@ func NewConfigHealthCheck() (*ConfigHealthCheck, error) {
 
 func CreateNewConfigHealthCheck() *ConfigHealthCheck {
 	cfg, err := NewConfigHealthCheck()
+	if err != nil {
+		panic(err)
+	}
+	return cfg
+}
+
+/* Parameter Config */
+type ConfigParameter struct {
+	Code string `default:"code" envconfig:"CODE"`
+}
+
+func NewConfigParameter() (*ConfigParameter, error) {
+	cfg := &ConfigParameter{}
+	err := envconfig.Process("config_parameter", cfg)
+	if err != nil {
+		return nil, err
+	}
+	return cfg, nil
+}
+
+func CreateNewConfigParameter() *ConfigParameter {
+	cfg, err := NewConfigParameter()
+	if err != nil {
+		panic(err)
+	}
+	return cfg
+}
+
+type ConfigRedis struct {
+	Address  string `default:"localhost:6379" envconfig:"REDIS_ADDRESS"`
+	Password string `default:"" envconfig:"REDIS_PASSWORD"`
+	DB       int    `default:"0" envconfig:"REDIS_DB"`
+}
+
+func NewConfigRedis() (*ConfigRedis, error) {
+	cfg := &ConfigRedis{}
+	err := envconfig.Process("config_parameter", cfg)
+	if err != nil {
+		return nil, err
+	}
+	return cfg, nil
+}
+
+func CreateNewConfigRedis() *ConfigRedis {
+	cfg, err := NewConfigRedis()
 	if err != nil {
 		panic(err)
 	}

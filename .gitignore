@@ -2,9 +2,16 @@
 *.exe
 *.out
 *.test
+*.html
+*.tmp
+
+coverage.html
+coverage.tmp
 
 # IDE
 .vscode/
 
 #DEMO
 _func_demo/
+
+.gocache/

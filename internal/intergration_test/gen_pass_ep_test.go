@@ -5,54 +5,29 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/pvlearning002/ebvn_assignment/internal/api"
-	"github.com/pvlearning002/ebvn_assignment/internal/config"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGenPassEndPoint(t *testing.T) {
-	t.Parallel()
-	cfg := *config.CreateNewConfig()
-	cfgStatus := *config.CreateNewConfigStatus()
-	cfgError := *config.CreateNewConfigError()
-	cfgPaths := *config.CreateNewConfigPaths()
-	cfgHealthCheck := *config.CreateNewConfigHealthCheck()
-	testCases := []struct {
-		name             string
-		setupTestHTTP    func(api api.Engine) *httptest.ResponseRecorder
-		expectedStatus   int
-		expectedResponse string
+	tests := []struct {
+		name         string
+		method       string
+		wantStatus   int
+		wantBodyPart string
 	}{
-		{
-			name: "normal case",
-			setupTestHTTP: func(api api.Engine) *httptest.ResponseRecorder {
-				recorder := httptest.NewRecorder()
-				req := httptest.NewRequest(http.MethodGet, cfgPaths.PathGetGenPass, nil)
-				api.ServeHTTP(recorder, req)
-				return recorder
-			},
-			expectedStatus:   http.StatusOK,
-			expectedResponse: cfg.PasswordTitle,
-		}, {
-			name: "wrong method case",
-			setupTestHTTP: func(api api.Engine) *httptest.ResponseRecorder {
-				recorder := httptest.NewRecorder()
-				req := httptest.NewRequest(http.MethodPost, cfgPaths.PathGetGenPass, nil)
-				api.ServeHTTP(recorder, req)
-				return recorder
-			},
-			expectedStatus:   http.StatusNotFound,
-			expectedResponse: "404 page not found",
-		},
+		{name: "generates password", method: http.MethodGet, wantStatus: http.StatusOK, wantBodyPart: `"Password"`},
+		{name: "wrong method", method: http.MethodPost, wantStatus: http.StatusNotFound, wantBodyPart: "404 page not found"},
 	}
 
-	for _, tc := range testCases {
+	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			testAPI := api.NewEngine(&cfg, &cfgStatus, &cfgError, &cfgPaths, &cfgHealthCheck)
-			recorder := tc.setupTestHTTP(testAPI)
-			assert.Equal(t, tc.expectedStatus, recorder.Code)
-			assert.Contains(t, recorder.Body.String(), tc.expectedResponse)
+			_, engine, _, paths, _ := setupIntegrationAPI(t)
+			recorder := httptest.NewRecorder()
+			request := httptest.NewRequest(tc.method, paths.PathGetGenPass, nil)
+			engine.ServeHTTP(recorder, request)
+
+			assert.Equal(t, tc.wantStatus, recorder.Code)
+			assert.Contains(t, recorder.Body.String(), tc.wantBodyPart)
 		})
 	}
 }
