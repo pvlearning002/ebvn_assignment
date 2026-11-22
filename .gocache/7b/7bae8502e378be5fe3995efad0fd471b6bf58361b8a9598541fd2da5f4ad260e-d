@@ -1,0 +1,415 @@
+# test log
+getenv PATHEXT
+getenv NoDefaultCurrentDirectoryInExePath
+stat docker.com
+stat docker.exe
+stat docker.bat
+stat docker.cmd
+stat docker.vbs
+stat docker.vbe
+stat docker.js
+stat docker.jse
+stat docker.wsf
+stat docker.wsh
+stat docker.msc
+stat docker.py
+stat docker.pyw
+stat docker.cpl
+getenv path
+stat C:\Program Files\Go\bin\docker.com
+stat C:\Program Files\Go\bin\docker.exe
+stat C:\Program Files\Go\bin\docker.bat
+stat C:\Program Files\Go\bin\docker.cmd
+stat C:\Program Files\Go\bin\docker.vbs
+stat C:\Program Files\Go\bin\docker.vbe
+stat C:\Program Files\Go\bin\docker.js
+stat C:\Program Files\Go\bin\docker.jse
+stat C:\Program Files\Go\bin\docker.wsf
+stat C:\Program Files\Go\bin\docker.wsh
+stat C:\Program Files\Go\bin\docker.msc
+stat C:\Program Files\Go\bin\docker.py
+stat C:\Program Files\Go\bin\docker.pyw
+stat C:\Program Files\Go\bin\docker.cpl
+stat C:\Users\VMP\.codex\tmp\arg0-windows\codex-arg0oek3Ot\docker.com
+stat C:\Users\VMP\.codex\tmp\arg0-windows\codex-arg0oek3Ot\docker.exe
+stat C:\Users\VMP\.codex\tmp\arg0-windows\codex-arg0oek3Ot\docker.bat
+stat C:\Users\VMP\.codex\tmp\arg0-windows\codex-arg0oek3Ot\docker.cmd
+stat C:\Users\VMP\.codex\tmp\arg0-windows\codex-arg0oek3Ot\docker.vbs
+stat C:\Users\VMP\.codex\tmp\arg0-windows\codex-arg0oek3Ot\docker.vbe
+stat C:\Users\VMP\.codex\tmp\arg0-windows\codex-arg0oek3Ot\docker.js
+stat C:\Users\VMP\.codex\tmp\arg0-windows\codex-arg0oek3Ot\docker.jse
+stat C:\Users\VMP\.codex\tmp\arg0-windows\codex-arg0oek3Ot\docker.wsf
+stat C:\Users\VMP\.codex\tmp\arg0-windows\codex-arg0oek3Ot\docker.wsh
+stat C:\Users\VMP\.codex\tmp\arg0-windows\codex-arg0oek3Ot\docker.msc
+stat C:\Users\VMP\.codex\tmp\arg0-windows\codex-arg0oek3Ot\docker.py
+stat C:\Users\VMP\.codex\tmp\arg0-windows\codex-arg0oek3Ot\docker.pyw
+stat C:\Users\VMP\.codex\tmp\arg0-windows\codex-arg0oek3Ot\docker.cpl
+stat C:\Program Files\Eclipse Adoptium\jdk-25.0.5.8-hotspot\bin\docker.com
+stat C:\Program Files\Eclipse Adoptium\jdk-25.0.5.8-hotspot\bin\docker.exe
+stat C:\Program Files\Eclipse Adoptium\jdk-25.0.5.8-hotspot\bin\docker.bat
+stat C:\Program Files\Eclipse Adoptium\jdk-25.0.5.8-hotspot\bin\docker.cmd
+stat C:\Program Files\Eclipse Adoptium\jdk-25.0.5.8-hotspot\bin\docker.vbs
+stat C:\Program Files\Eclipse Adoptium\jdk-25.0.5.8-hotspot\bin\docker.vbe
+stat C:\Program Files\Eclipse Adoptium\jdk-25.0.5.8-hotspot\bin\docker.js
+stat C:\Program Files\Eclipse Adoptium\jdk-25.0.5.8-hotspot\bin\docker.jse
+stat C:\Program Files\Eclipse Adoptium\jdk-25.0.5.8-hotspot\bin\docker.wsf
+stat C:\Program Files\Eclipse Adoptium\jdk-25.0.5.8-hotspot\bin\docker.wsh
+stat C:\Program Files\Eclipse Adoptium\jdk-25.0.5.8-hotspot\bin\docker.msc
+stat C:\Program Files\Eclipse Adoptium\jdk-25.0.5.8-hotspot\bin\docker.py
+stat C:\Program Files\Eclipse Adoptium\jdk-25.0.5.8-hotspot\bin\docker.pyw
+stat C:\Program Files\Eclipse Adoptium\jdk-25.0.5.8-hotspot\bin\docker.cpl
+stat C:\WINDOWS\system32\docker.com
+stat C:\WINDOWS\system32\docker.exe
+stat C:\WINDOWS\system32\docker.bat
+stat C:\WINDOWS\system32\docker.cmd
+stat C:\WINDOWS\system32\docker.vbs
+stat C:\WINDOWS\system32\docker.vbe
+stat C:\WINDOWS\system32\docker.js
+stat C:\WINDOWS\system32\docker.jse
+stat C:\WINDOWS\system32\docker.wsf
+stat C:\WINDOWS\system32\docker.wsh
+stat C:\WINDOWS\system32\docker.msc
+stat C:\WINDOWS\system32\docker.py
+stat C:\WINDOWS\system32\docker.pyw
+stat C:\WINDOWS\system32\docker.cpl
+stat C:\WINDOWS\docker.com
+stat C:\WINDOWS\docker.exe
+stat C:\WINDOWS\docker.bat
+stat C:\WINDOWS\docker.cmd
+stat C:\WINDOWS\docker.vbs
+stat C:\WINDOWS\docker.vbe
+stat C:\WINDOWS\docker.js
+stat C:\WINDOWS\docker.jse
+stat C:\WINDOWS\docker.wsf
+stat C:\WINDOWS\docker.wsh
+stat C:\WINDOWS\docker.msc
+stat C:\WINDOWS\docker.py
+stat C:\WINDOWS\docker.pyw
+stat C:\WINDOWS\docker.cpl
+stat C:\WINDOWS\System32\Wbem\docker.com
+stat C:\WINDOWS\System32\Wbem\docker.exe
+stat C:\WINDOWS\System32\Wbem\docker.bat
+stat C:\WINDOWS\System32\Wbem\docker.cmd
+stat C:\WINDOWS\System32\Wbem\docker.vbs
+stat C:\WINDOWS\System32\Wbem\docker.vbe
+stat C:\WINDOWS\System32\Wbem\docker.js
+stat C:\WINDOWS\System32\Wbem\docker.jse
+stat C:\WINDOWS\System32\Wbem\docker.wsf
+stat C:\WINDOWS\System32\Wbem\docker.wsh
+stat C:\WINDOWS\System32\Wbem\docker.msc
+stat C:\WINDOWS\System32\Wbem\docker.py
+stat C:\WINDOWS\System32\Wbem\docker.pyw
+stat C:\WINDOWS\System32\Wbem\docker.cpl
+stat C:\WINDOWS\System32\WindowsPowerShell\v1.0\docker.com
+stat C:\WINDOWS\System32\WindowsPowerShell\v1.0\docker.exe
+stat C:\WINDOWS\System32\WindowsPowerShell\v1.0\docker.bat
+stat C:\WINDOWS\System32\WindowsPowerShell\v1.0\docker.cmd
+stat C:\WINDOWS\System32\WindowsPowerShell\v1.0\docker.vbs
+stat C:\WINDOWS\System32\WindowsPowerShell\v1.0\docker.vbe
+stat C:\WINDOWS\System32\WindowsPowerShell\v1.0\docker.js
+stat C:\WINDOWS\System32\WindowsPowerShell\v1.0\docker.jse
+stat C:\WINDOWS\System32\WindowsPowerShell\v1.0\docker.wsf
+stat C:\WINDOWS\System32\WindowsPowerShell\v1.0\docker.wsh
+stat C:\WINDOWS\System32\WindowsPowerShell\v1.0\docker.msc
+stat C:\WINDOWS\System32\WindowsPowerShell\v1.0\docker.py
+stat C:\WINDOWS\System32\WindowsPowerShell\v1.0\docker.pyw
+stat C:\WINDOWS\System32\WindowsPowerShell\v1.0\docker.cpl
+stat C:\WINDOWS\System32\OpenSSH\docker.com
+stat C:\WINDOWS\System32\OpenSSH\docker.exe
+stat C:\WINDOWS\System32\OpenSSH\docker.bat
+stat C:\WINDOWS\System32\OpenSSH\docker.cmd
+stat C:\WINDOWS\System32\OpenSSH\docker.vbs
+stat C:\WINDOWS\System32\OpenSSH\docker.vbe
+stat C:\WINDOWS\System32\OpenSSH\docker.js
+stat C:\WINDOWS\System32\OpenSSH\docker.jse
+stat C:\WINDOWS\System32\OpenSSH\docker.wsf
+stat C:\WINDOWS\System32\OpenSSH\docker.wsh
+stat C:\WINDOWS\System32\OpenSSH\docker.msc
+stat C:\WINDOWS\System32\OpenSSH\docker.py
+stat C:\WINDOWS\System32\OpenSSH\docker.pyw
+stat C:\WINDOWS\System32\OpenSSH\docker.cpl
+stat C:\Program Files\Java\jdk-26.0.1\bin\docker.com
+stat C:\Program Files\Java\jdk-26.0.1\bin\docker.exe
+stat C:\Program Files\Java\jdk-26.0.1\bin\docker.bat
+stat C:\Program Files\Java\jdk-26.0.1\bin\docker.cmd
+stat C:\Program Files\Java\jdk-26.0.1\bin\docker.vbs
+stat C:\Program Files\Java\jdk-26.0.1\bin\docker.vbe
+stat C:\Program Files\Java\jdk-26.0.1\bin\docker.js
+stat C:\Program Files\Java\jdk-26.0.1\bin\docker.jse
+stat C:\Program Files\Java\jdk-26.0.1\bin\docker.wsf
+stat C:\Program Files\Java\jdk-26.0.1\bin\docker.wsh
+stat C:\Program Files\Java\jdk-26.0.1\bin\docker.msc
+stat C:\Program Files\Java\jdk-26.0.1\bin\docker.py
+stat C:\Program Files\Java\jdk-26.0.1\bin\docker.pyw
+stat C:\Program Files\Java\jdk-26.0.1\bin\docker.cpl
+stat C:\Programs\Python\Python031314\Scripts\docker.com
+stat C:\Programs\Python\Python031314\Scripts\docker.exe
+stat C:\Programs\Python\Python031314\Scripts\docker.bat
+stat C:\Programs\Python\Python031314\Scripts\docker.cmd
+stat C:\Programs\Python\Python031314\Scripts\docker.vbs
+stat C:\Programs\Python\Python031314\Scripts\docker.vbe
+stat C:\Programs\Python\Python031314\Scripts\docker.js
+stat C:\Programs\Python\Python031314\Scripts\docker.jse
+stat C:\Programs\Python\Python031314\Scripts\docker.wsf
+stat C:\Programs\Python\Python031314\Scripts\docker.wsh
+stat C:\Programs\Python\Python031314\Scripts\docker.msc
+stat C:\Programs\Python\Python031314\Scripts\docker.py
+stat C:\Programs\Python\Python031314\Scripts\docker.pyw
+stat C:\Programs\Python\Python031314\Scripts\docker.cpl
+stat C:\Programs\Python\Python031314\docker.com
+stat C:\Programs\Python\Python031314\docker.exe
+stat C:\Programs\Python\Python031314\docker.bat
+stat C:\Programs\Python\Python031314\docker.cmd
+stat C:\Programs\Python\Python031314\docker.vbs
+stat C:\Programs\Python\Python031314\docker.vbe
+stat C:\Programs\Python\Python031314\docker.js
+stat C:\Programs\Python\Python031314\docker.jse
+stat C:\Programs\Python\Python031314\docker.wsf
+stat C:\Programs\Python\Python031314\docker.wsh
+stat C:\Programs\Python\Python031314\docker.msc
+stat C:\Programs\Python\Python031314\docker.py
+stat C:\Programs\Python\Python031314\docker.pyw
+stat C:\Programs\Python\Python031314\docker.cpl
+stat C:\Program Files\Common Files\Oracle\Java\javapath\docker.com
+stat C:\Program Files\Common Files\Oracle\Java\javapath\docker.exe
+stat C:\Program Files\Common Files\Oracle\Java\javapath\docker.bat
+stat C:\Program Files\Common Files\Oracle\Java\javapath\docker.cmd
+stat C:\Program Files\Common Files\Oracle\Java\javapath\docker.vbs
+stat C:\Program Files\Common Files\Oracle\Java\javapath\docker.vbe
+stat C:\Program Files\Common Files\Oracle\Java\javapath\docker.js
+stat C:\Program Files\Common Files\Oracle\Java\javapath\docker.jse
+stat C:\Program Files\Common Files\Oracle\Java\javapath\docker.wsf
+stat C:\Program Files\Common Files\Oracle\Java\javapath\docker.wsh
+stat C:\Program Files\Common Files\Oracle\Java\javapath\docker.msc
+stat C:\Program Files\Common Files\Oracle\Java\javapath\docker.py
+stat C:\Program Files\Common Files\Oracle\Java\javapath\docker.pyw
+stat C:\Program Files\Common Files\Oracle\Java\javapath\docker.cpl
+stat C:\Program Files (x86)\Common Files\Oracle\Java\java8path\docker.com
+stat C:\Program Files (x86)\Common Files\Oracle\Java\java8path\docker.exe
+stat C:\Program Files (x86)\Common Files\Oracle\Java\java8path\docker.bat
+stat C:\Program Files (x86)\Common Files\Oracle\Java\java8path\docker.cmd
+stat C:\Program Files (x86)\Common Files\Oracle\Java\java8path\docker.vbs
+stat C:\Program Files (x86)\Common Files\Oracle\Java\java8path\docker.vbe
+stat C:\Program Files (x86)\Common Files\Oracle\Java\java8path\docker.js
+stat C:\Program Files (x86)\Common Files\Oracle\Java\java8path\docker.jse
+stat C:\Program Files (x86)\Common Files\Oracle\Java\java8path\docker.wsf
+stat C:\Program Files (x86)\Common Files\Oracle\Java\java8path\docker.wsh
+stat C:\Program Files (x86)\Common Files\Oracle\Java\java8path\docker.msc
+stat C:\Program Files (x86)\Common Files\Oracle\Java\java8path\docker.py
+stat C:\Program Files (x86)\Common Files\Oracle\Java\java8path\docker.pyw
+stat C:\Program Files (x86)\Common Files\Oracle\Java\java8path\docker.cpl
+stat C:\Program Files (x86)\Common Files\Oracle\Java\javapath\docker.com
+stat C:\Program Files (x86)\Common Files\Oracle\Java\javapath\docker.exe
+stat C:\Program Files (x86)\Common Files\Oracle\Java\javapath\docker.bat
+stat C:\Program Files (x86)\Common Files\Oracle\Java\javapath\docker.cmd
+stat C:\Program Files (x86)\Common Files\Oracle\Java\javapath\docker.vbs
+stat C:\Program Files (x86)\Common Files\Oracle\Java\javapath\docker.vbe
+stat C:\Program Files (x86)\Common Files\Oracle\Java\javapath\docker.js
+stat C:\Program Files (x86)\Common Files\Oracle\Java\javapath\docker.jse
+stat C:\Program Files (x86)\Common Files\Oracle\Java\javapath\docker.wsf
+stat C:\Program Files (x86)\Common Files\Oracle\Java\javapath\docker.wsh
+stat C:\Program Files (x86)\Common Files\Oracle\Java\javapath\docker.msc
+stat C:\Program Files (x86)\Common Files\Oracle\Java\javapath\docker.py
+stat C:\Program Files (x86)\Common Files\Oracle\Java\javapath\docker.pyw
+stat C:\Program Files (x86)\Common Files\Oracle\Java\javapath\docker.cpl
+stat C:\Program Files\Microsoft SQL Server\170\Tools\Binn\docker.com
+stat C:\Program Files\Microsoft SQL Server\170\Tools\Binn\docker.exe
+stat C:\Program Files\Microsoft SQL Server\170\Tools\Binn\docker.bat
+stat C:\Program Files\Microsoft SQL Server\170\Tools\Binn\docker.cmd
+stat C:\Program Files\Microsoft SQL Server\170\Tools\Binn\docker.vbs
+stat C:\Program Files\Microsoft SQL Server\170\Tools\Binn\docker.vbe
+stat C:\Program Files\Microsoft SQL Server\170\Tools\Binn\docker.js
+stat C:\Program Files\Microsoft SQL Server\170\Tools\Binn\docker.jse
+stat C:\Program Files\Microsoft SQL Server\170\Tools\Binn\docker.wsf
+stat C:\Program Files\Microsoft SQL Server\170\Tools\Binn\docker.wsh
+stat C:\Program Files\Microsoft SQL Server\170\Tools\Binn\docker.msc
+stat C:\Program Files\Microsoft SQL Server\170\Tools\Binn\docker.py
+stat C:\Program Files\Microsoft SQL Server\170\Tools\Binn\docker.pyw
+stat C:\Program Files\Microsoft SQL Server\170\Tools\Binn\docker.cpl
+stat C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\docker.com
+stat C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\docker.exe
+stat C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\docker.bat
+stat C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\docker.cmd
+stat C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\docker.vbs
+stat C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\docker.vbe
+stat C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\docker.js
+stat C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\docker.jse
+stat C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\docker.wsf
+stat C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\docker.wsh
+stat C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\docker.msc
+stat C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\docker.py
+stat C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\docker.pyw
+stat C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\docker.cpl
+stat C:\Program Files\dotnet\docker.com
+stat C:\Program Files\dotnet\docker.exe
+stat C:\Program Files\dotnet\docker.bat
+stat C:\Program Files\dotnet\docker.cmd
+stat C:\Program Files\dotnet\docker.vbs
+stat C:\Program Files\dotnet\docker.vbe
+stat C:\Program Files\dotnet\docker.js
+stat C:\Program Files\dotnet\docker.jse
+stat C:\Program Files\dotnet\docker.wsf
+stat C:\Program Files\dotnet\docker.wsh
+stat C:\Program Files\dotnet\docker.msc
+stat C:\Program Files\dotnet\docker.py
+stat C:\Program Files\dotnet\docker.pyw
+stat C:\Program Files\dotnet\docker.cpl
+stat C:\Program Files\Microsoft VS Code\bin\docker.com
+stat C:\Program Files\Microsoft VS Code\bin\docker.exe
+stat C:\Program Files\Microsoft VS Code\bin\docker.bat
+stat C:\Program Files\Microsoft VS Code\bin\docker.cmd
+stat C:\Program Files\Microsoft VS Code\bin\docker.vbs
+stat C:\Program Files\Microsoft VS Code\bin\docker.vbe
+stat C:\Program Files\Microsoft VS Code\bin\docker.js
+stat C:\Program Files\Microsoft VS Code\bin\docker.jse
+stat C:\Program Files\Microsoft VS Code\bin\docker.wsf
+stat C:\Program Files\Microsoft VS Code\bin\docker.wsh
+stat C:\Program Files\Microsoft VS Code\bin\docker.msc
+stat C:\Program Files\Microsoft VS Code\bin\docker.py
+stat C:\Program Files\Microsoft VS Code\bin\docker.pyw
+stat C:\Program Files\Microsoft VS Code\bin\docker.cpl
+stat C:\Program Files\Go\bin\docker.com
+stat C:\Program Files\Go\bin\docker.exe
+stat C:\Program Files\Go\bin\docker.bat
+stat C:\Program Files\Go\bin\docker.cmd
+stat C:\Program Files\Go\bin\docker.vbs
+stat C:\Program Files\Go\bin\docker.vbe
+stat C:\Program Files\Go\bin\docker.js
+stat C:\Program Files\Go\bin\docker.jse
+stat C:\Program Files\Go\bin\docker.wsf
+stat C:\Program Files\Go\bin\docker.wsh
+stat C:\Program Files\Go\bin\docker.msc
+stat C:\Program Files\Go\bin\docker.py
+stat C:\Program Files\Go\bin\docker.pyw
+stat C:\Program Files\Go\bin\docker.cpl
+stat C:\Program Files\TortoiseGit\bin\docker.com
+stat C:\Program Files\TortoiseGit\bin\docker.exe
+stat C:\Program Files\TortoiseGit\bin\docker.bat
+stat C:\Program Files\TortoiseGit\bin\docker.cmd
+stat C:\Program Files\TortoiseGit\bin\docker.vbs
+stat C:\Program Files\TortoiseGit\bin\docker.vbe
+stat C:\Program Files\TortoiseGit\bin\docker.js
+stat C:\Program Files\TortoiseGit\bin\docker.jse
+stat C:\Program Files\TortoiseGit\bin\docker.wsf
+stat C:\Program Files\TortoiseGit\bin\docker.wsh
+stat C:\Program Files\TortoiseGit\bin\docker.msc
+stat C:\Program Files\TortoiseGit\bin\docker.py
+stat C:\Program Files\TortoiseGit\bin\docker.pyw
+stat C:\Program Files\TortoiseGit\bin\docker.cpl
+stat C:\Program Files\Microsoft VS Code\bin\copilot-shim\docker.com
+stat C:\Program Files\Microsoft VS Code\bin\copilot-shim\docker.exe
+stat C:\Program Files\Microsoft VS Code\bin\copilot-shim\docker.bat
+stat C:\Program Files\Microsoft VS Code\bin\copilot-shim\docker.cmd
+stat C:\Program Files\Microsoft VS Code\bin\copilot-shim\docker.vbs
+stat C:\Program Files\Microsoft VS Code\bin\copilot-shim\docker.vbe
+stat C:\Program Files\Microsoft VS Code\bin\copilot-shim\docker.js
+stat C:\Program Files\Microsoft VS Code\bin\copilot-shim\docker.jse
+stat C:\Program Files\Microsoft VS Code\bin\copilot-shim\docker.wsf
+stat C:\Program Files\Microsoft VS Code\bin\copilot-shim\docker.wsh
+stat C:\Program Files\Microsoft VS Code\bin\copilot-shim\docker.msc
+stat C:\Program Files\Microsoft VS Code\bin\copilot-shim\docker.py
+stat C:\Program Files\Microsoft VS Code\bin\copilot-shim\docker.pyw
+stat C:\Program Files\Microsoft VS Code\bin\copilot-shim\docker.cpl
+stat C:\ProgramData\chocolatey\bin\docker.com
+stat C:\ProgramData\chocolatey\bin\docker.exe
+stat C:\ProgramData\chocolatey\bin\docker.bat
+stat C:\ProgramData\chocolatey\bin\docker.cmd
+stat C:\ProgramData\chocolatey\bin\docker.vbs
+stat C:\ProgramData\chocolatey\bin\docker.vbe
+stat C:\ProgramData\chocolatey\bin\docker.js
+stat C:\ProgramData\chocolatey\bin\docker.jse
+stat C:\ProgramData\chocolatey\bin\docker.wsf
+stat C:\ProgramData\chocolatey\bin\docker.wsh
+stat C:\ProgramData\chocolatey\bin\docker.msc
+stat C:\ProgramData\chocolatey\bin\docker.py
+stat C:\ProgramData\chocolatey\bin\docker.pyw
+stat C:\ProgramData\chocolatey\bin\docker.cpl
+stat C:\Program Files\WSL\docker.com
+stat C:\Program Files\WSL\docker.exe
+stat C:\Program Files\WSL\docker.bat
+stat C:\Program Files\WSL\docker.cmd
+stat C:\Program Files\WSL\docker.vbs
+stat C:\Program Files\WSL\docker.vbe
+stat C:\Program Files\WSL\docker.js
+stat C:\Program Files\WSL\docker.jse
+stat C:\Program Files\WSL\docker.wsf
+stat C:\Program Files\WSL\docker.wsh
+stat C:\Program Files\WSL\docker.msc
+stat C:\Program Files\WSL\docker.py
+stat C:\Program Files\WSL\docker.pyw
+stat C:\Program Files\WSL\docker.cpl
+stat C:\Program Files\Git\cmd\docker.com
+stat C:\Program Files\Git\cmd\docker.exe
+stat C:\Program Files\Git\cmd\docker.bat
+stat C:\Program Files\Git\cmd\docker.cmd
+stat C:\Program Files\Git\cmd\docker.vbs
+stat C:\Program Files\Git\cmd\docker.vbe
+stat C:\Program Files\Git\cmd\docker.js
+stat C:\Program Files\Git\cmd\docker.jse
+stat C:\Program Files\Git\cmd\docker.wsf
+stat C:\Program Files\Git\cmd\docker.wsh
+stat C:\Program Files\Git\cmd\docker.msc
+stat C:\Program Files\Git\cmd\docker.py
+stat C:\Program Files\Git\cmd\docker.pyw
+stat C:\Program Files\Git\cmd\docker.cpl
+stat C:\Users\VMP\AppData\Local\Microsoft\WindowsApps\docker.com
+stat C:\Users\VMP\AppData\Local\Microsoft\WindowsApps\docker.exe
+stat C:\Users\VMP\AppData\Local\Microsoft\WindowsApps\docker.bat
+stat C:\Users\VMP\AppData\Local\Microsoft\WindowsApps\docker.cmd
+stat C:\Users\VMP\AppData\Local\Microsoft\WindowsApps\docker.vbs
+stat C:\Users\VMP\AppData\Local\Microsoft\WindowsApps\docker.vbe
+stat C:\Users\VMP\AppData\Local\Microsoft\WindowsApps\docker.js
+stat C:\Users\VMP\AppData\Local\Microsoft\WindowsApps\docker.jse
+stat C:\Users\VMP\AppData\Local\Microsoft\WindowsApps\docker.wsf
+stat C:\Users\VMP\AppData\Local\Microsoft\WindowsApps\docker.wsh
+stat C:\Users\VMP\AppData\Local\Microsoft\WindowsApps\docker.msc
+stat C:\Users\VMP\AppData\Local\Microsoft\WindowsApps\docker.py
+stat C:\Users\VMP\AppData\Local\Microsoft\WindowsApps\docker.pyw
+stat C:\Users\VMP\AppData\Local\Microsoft\WindowsApps\docker.cpl
+stat C:\Users\VMP\.dotnet\tools\docker.com
+stat C:\Users\VMP\.dotnet\tools\docker.exe
+stat C:\Users\VMP\.dotnet\tools\docker.bat
+stat C:\Users\VMP\.dotnet\tools\docker.cmd
+stat C:\Users\VMP\.dotnet\tools\docker.vbs
+stat C:\Users\VMP\.dotnet\tools\docker.vbe
+stat C:\Users\VMP\.dotnet\tools\docker.js
+stat C:\Users\VMP\.dotnet\tools\docker.jse
+stat C:\Users\VMP\.dotnet\tools\docker.wsf
+stat C:\Users\VMP\.dotnet\tools\docker.wsh
+stat C:\Users\VMP\.dotnet\tools\docker.msc
+stat C:\Users\VMP\.dotnet\tools\docker.py
+stat C:\Users\VMP\.dotnet\tools\docker.pyw
+stat C:\Users\VMP\.dotnet\tools\docker.cpl
+stat C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2025.2.6.2\bin\docker.com
+stat C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2025.2.6.2\bin\docker.exe
+stat C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2025.2.6.2\bin\docker.bat
+stat C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2025.2.6.2\bin\docker.cmd
+stat C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2025.2.6.2\bin\docker.vbs
+stat C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2025.2.6.2\bin\docker.vbe
+stat C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2025.2.6.2\bin\docker.js
+stat C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2025.2.6.2\bin\docker.jse
+stat C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2025.2.6.2\bin\docker.wsf
+stat C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2025.2.6.2\bin\docker.wsh
+stat C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2025.2.6.2\bin\docker.msc
+stat C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2025.2.6.2\bin\docker.py
+stat C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2025.2.6.2\bin\docker.pyw
+stat C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2025.2.6.2\bin\docker.cpl
+stat C:\Users\VMP\go\bin\docker.com
+stat C:\Users\VMP\go\bin\docker.exe
+stat C:\Users\VMP\go\bin\docker.bat
+stat C:\Users\VMP\go\bin\docker.cmd
+stat C:\Users\VMP\go\bin\docker.vbs
+stat C:\Users\VMP\go\bin\docker.vbe
+stat C:\Users\VMP\go\bin\docker.js
+stat C:\Users\VMP\go\bin\docker.jse
+stat C:\Users\VMP\go\bin\docker.wsf
+stat C:\Users\VMP\go\bin\docker.wsh
+stat C:\Users\VMP\go\bin\docker.msc
+stat C:\Users\VMP\go\bin\docker.py
+stat C:\Users\VMP\go\bin\docker.pyw
+stat C:\Users\VMP\go\bin\docker.cpl
+stat C:\Users\VMP\AppData\Local\Programs\DockerDesktop\resources\bin\docker.com
+stat C:\Users\VMP\AppData\Local\Programs\DockerDesktop\resources\bin\docker.exe
+getenv PATHEXT
+open NUL
+open C:\Users\VMP\AppData\Local\Programs\DockerDesktop\resources\bin\docker.exe
