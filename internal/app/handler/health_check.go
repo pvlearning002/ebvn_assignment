@@ -16,12 +16,18 @@ type HealthCheck interface {
 type healthCheckHandler struct {
 	svc      service.HealthCheck
 	cfg      config.Config
-	cfgError config.ConfigError
+	response utils.ResponseUtils
 	logger   utils.LoggerUtils
 }
 
-func NewHealthCheck(svc service.HealthCheck, cfg config.Config, cfgError config.ConfigError, logger utils.LoggerUtils) HealthCheck {
-	return &healthCheckHandler{svc: svc, cfg: cfg, cfgError: cfgError, logger: logger}
+func NewHealthCheck(svc service.HealthCheck,
+	cfg config.Config,
+	response utils.ResponseUtils,
+	logger utils.LoggerUtils) HealthCheck {
+	return &healthCheckHandler{svc: svc,
+		cfg:      cfg,
+		response: response,
+		logger:   logger}
 }
 
 // @Summary Generate Health Check
@@ -35,7 +41,7 @@ func (self *healthCheckHandler) GenerateHealthCheck(c *gin.Context) {
 	modelHealthCheck, err := self.svc.GenerateHealthCheck()
 	if err != nil {
 		self.logger.WriteLogError(err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInternalServer})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, self.response.GetErrorInternalServer())
 		return
 	}
 	c.JSON(http.StatusOK, modelHealthCheck)
