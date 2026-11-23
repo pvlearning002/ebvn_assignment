@@ -37,7 +37,7 @@ func TestNewHealthCheck(t *testing.T) {
 	got := NewHealthCheck(
 		new(healthCheckHandlerServiceMock),
 		config.Config{},
-		config.ConfigError{},
+		utils.NewResponseUtils(config.ConfigError{}),
 		utils.NewLoggerUtils(),
 	)
 	require.NotNil(t, got)
@@ -55,7 +55,7 @@ func TestHealthCheckHandler_GenerateHealthCheck_Success(t *testing.T) {
 	}
 	serviceMock := new(healthCheckHandlerServiceMock)
 	serviceMock.On("GenerateHealthCheck").Return(want, nil).Once()
-	handler := NewHealthCheck(serviceMock, config.Config{}, config.ConfigError{}, utils.NewLoggerUtils())
+	handler := NewHealthCheck(serviceMock, config.Config{}, utils.NewResponseUtils(config.ConfigError{}), utils.NewLoggerUtils())
 	recorder := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(recorder)
 	ctx.Request = httptest.NewRequest(http.MethodGet, "/health", nil)
@@ -75,7 +75,7 @@ func TestHealthCheckHandler_GenerateHealthCheck_ServiceError(t *testing.T) {
 		ErrorTitle:          "Error",
 		ErrorInternalServer: "Internal Server Error",
 	}
-	handler := NewHealthCheck(serviceMock, config.Config{}, cfgError, utils.NewLoggerUtils())
+	handler := NewHealthCheck(serviceMock, config.Config{}, utils.NewResponseUtils(cfgError), utils.NewLoggerUtils())
 	recorder := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(recorder)
 	ctx.Request = httptest.NewRequest(http.MethodGet, "/health", nil)
@@ -83,6 +83,6 @@ func TestHealthCheckHandler_GenerateHealthCheck_ServiceError(t *testing.T) {
 	handler.GenerateHealthCheck(ctx)
 
 	assert.Equal(t, http.StatusInternalServerError, recorder.Code)
-	assert.JSONEq(t, `{"Error":"Internal Server Error"}`, recorder.Body.String())
+	assert.JSONEq(t, `{"error_title":"Error","message":"Internal Server Error"}`, recorder.Body.String())
 	serviceMock.AssertExpectations(t)
 }

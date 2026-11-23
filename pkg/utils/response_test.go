@@ -10,6 +10,7 @@ import (
 
 func TestNewResponseUtils(t *testing.T) {
 	cfgError := config.ConfigError{
+		ErrorTitle:          "Error",
 		ErrorInternalServer: "internal server error",
 		ErrorInvalidInput:   "invalid input",
 	}
@@ -23,20 +24,26 @@ func TestNewResponseUtils(t *testing.T) {
 	}
 }
 
-func TestInputFieldError_NonValidationError(t *testing.T) {
-	cfgError := config.ConfigError{ErrorInternalServer: "internal server error"}
-	utils := NewResponseUtils(cfgError).(*responseUtils)
+func TestGetInputFieldError_NonValidationError(t *testing.T) {
+	cfgError := config.ConfigError{
+		ErrorTitle:        "Error",
+		ErrorInvalidInput: "invalid input",
+	}
+	utils := NewResponseUtils(cfgError)
 
-	got := utils.InputFieldError(errors.New("database unavailable"))
-	if got.Message != cfgError.ErrorInternalServer {
-		t.Errorf("Message = %q, want %q", got.Message, cfgError.ErrorInternalServer)
+	got := utils.GetInputFieldError(errors.New("bad request"))
+	if got.Title != cfgError.ErrorTitle {
+		t.Errorf("Title = %q, want %q", got.Title, cfgError.ErrorTitle)
+	}
+	if got.Message != cfgError.ErrorInvalidInput {
+		t.Errorf("Message = %q, want %q", got.Message, cfgError.ErrorInvalidInput)
 	}
 	if got.Details != nil {
 		t.Errorf("Details = %#v, want nil", got.Details)
 	}
 }
 
-func TestInputFieldError_ValidationErrors(t *testing.T) {
+func TestGetInputFieldError_ValidationErrors(t *testing.T) {
 	type input struct {
 		Email string `validate:"required,email"`
 		Age   int    `validate:"gte=18"`
@@ -47,10 +54,15 @@ func TestInputFieldError_ValidationErrors(t *testing.T) {
 		t.Fatal("validator.Struct() returned nil, want validation errors")
 	}
 
-	cfgError := config.ConfigError{ErrorInvalidInput: "invalid input"}
-	utils := NewResponseUtils(cfgError).(*responseUtils)
-	got := utils.InputFieldError(err)
+	cfgError := config.ConfigError{
+		ErrorTitle:        "Error",
+		ErrorInvalidInput: "invalid input",
+	}
+	got := NewResponseUtils(cfgError).GetInputFieldError(err)
 
+	if got.Title != cfgError.ErrorTitle {
+		t.Errorf("Title = %q, want %q", got.Title, cfgError.ErrorTitle)
+	}
 	if got.Message != cfgError.ErrorInvalidInput {
 		t.Errorf("Message = %q, want %q", got.Message, cfgError.ErrorInvalidInput)
 	}
@@ -67,5 +79,59 @@ func TestInputFieldError_ValidationErrors(t *testing.T) {
 		if details[i] != want[i] {
 			t.Errorf("Details[%d] = %q, want %q", i, details[i], want[i])
 		}
+	}
+}
+
+func TestGetErrorInternalServer(t *testing.T) {
+	cfgError := config.ConfigError{
+		ErrorTitle:          "Error",
+		ErrorInternalServer: "internal server error",
+	}
+	got := NewResponseUtils(cfgError).GetErrorInternalServer()
+
+	if got.Title != cfgError.ErrorTitle {
+		t.Errorf("Title = %q, want %q", got.Title, cfgError.ErrorTitle)
+	}
+	if got.Message != cfgError.ErrorInternalServer {
+		t.Errorf("Message = %q, want %q", got.Message, cfgError.ErrorInternalServer)
+	}
+	if got.Details != nil {
+		t.Errorf("Details = %#v, want nil", got.Details)
+	}
+}
+
+func TestGetErrorInvalidInput(t *testing.T) {
+	cfgError := config.ConfigError{
+		ErrorTitle:        "Error",
+		ErrorInvalidInput: "invalid input",
+	}
+	got := NewResponseUtils(cfgError).GetErrorInvalidInput()
+
+	if got.Title != cfgError.ErrorTitle {
+		t.Errorf("Title = %q, want %q", got.Title, cfgError.ErrorTitle)
+	}
+	if got.Message != cfgError.ErrorInvalidInput {
+		t.Errorf("Message = %q, want %q", got.Message, cfgError.ErrorInvalidInput)
+	}
+	if got.Details != nil {
+		t.Errorf("Details = %#v, want nil", got.Details)
+	}
+}
+
+func TestGetErrorUrlNotFound(t *testing.T) {
+	cfgError := config.ConfigError{
+		ErrorTitle:      "Error",
+		ErrorUrlNotFound: "URL not found",
+	}
+	got := NewResponseUtils(cfgError).GetErrorUrlNotFound()
+
+	if got.Title != cfgError.ErrorTitle {
+		t.Errorf("Title = %q, want %q", got.Title, cfgError.ErrorTitle)
+	}
+	if got.Message != cfgError.ErrorUrlNotFound {
+		t.Errorf("Message = %q, want %q", got.Message, cfgError.ErrorUrlNotFound)
+	}
+	if got.Details != nil {
+		t.Errorf("Details = %#v, want nil", got.Details)
 	}
 }

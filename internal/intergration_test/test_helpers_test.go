@@ -24,6 +24,7 @@ func setupIntegrationAPI(t *testing.T) (*miniredis.Miniredis, api.Engine, *confi
 	cfgRedis := config.ConfigRedis{Address: redisServer.Addr()}
 
 	logger := utils.NewLoggerUtils()
+	response := utils.NewResponseUtils(*cfgError)
 	stringUtils := utils.NewStringUtils(*cfg, *cfgError, logger)
 	redisUtils := utils.NewRedisClientUtils(*cfg, cfgRedis, *cfgError)
 	engine := api.NewEngine(
@@ -35,6 +36,7 @@ func setupIntegrationAPI(t *testing.T) (*miniredis.Miniredis, api.Engine, *confi
 		cfgParameter,
 		&stringUtils,
 		&redisUtils,
+		&response,
 		&logger,
 	)
 
