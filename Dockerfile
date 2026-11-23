@@ -1,6 +1,8 @@
 
 FROM golang:1.27-alpine AS build
 
+RUN mkdir -p /opt/app
+
 WORKDIR /opt/app
 
 COPY go.mod go.sum ./
