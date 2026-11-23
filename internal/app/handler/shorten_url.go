@@ -20,16 +20,18 @@ type shortenURLHandler struct {
 	shortenURLService service.ShortenURL
 	cfg               config.Config
 	cfgError          config.ConfigError
+	response          utils.ResponseUtils
 	cfgParameter      config.ConfigParameter
 	logger            utils.LoggerUtils
 }
 
 // NewShortenURLHandler creates a new instance of the ShortenURLHandler with the provided service.
-func NewShortenURLHandler(svc service.ShortenURL, cfg config.Config, cfgError config.ConfigError, cfgParameter config.ConfigParameter, logger utils.LoggerUtils) *shortenURLHandler {
+func NewShortenURLHandler(svc service.ShortenURL, cfg config.Config, cfgError config.ConfigError, response utils.ResponseUtils, cfgParameter config.ConfigParameter, logger utils.LoggerUtils) *shortenURLHandler {
 	return &shortenURLHandler{
 		shortenURLService: svc,
 		cfg:               cfg,
 		cfgError:          cfgError,
+		response:          response,
 		cfgParameter:      cfgParameter,
 		logger:            logger,
 	}
@@ -50,13 +52,13 @@ func (self *shortenURLHandler) CreateShortenLink(ctx *gin.Context) {
 	input := &model.ShortenLinkInput{}
 	if err := ctx.ShouldBindJSON(input); err != nil {
 		self.logger.WriteLogError(err.Error())
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInvalidInput})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, self.response.GetInputFieldError(err))
 		return
 	}
 	shortenLinkOutput, err := self.shortenURLService.CreateShortenLink(ctx, input.Url)
 	if err != nil {
 		self.logger.WriteLogError(err.Error())
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInternalServer})
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, self.response.GetErrorInternalServer())
 		return
 	}
 	ctx.JSON(http.StatusOK, shortenLinkOutput)
@@ -77,17 +79,17 @@ func (self *shortenURLHandler) RedirectToOriginalURL(ctx *gin.Context) {
 	keyCode := ctx.Param(self.cfgParameter.Code)
 	if keyCode == self.cfg.StringEmpty {
 		self.logger.WriteLogError(self.cfgError.ErrorInvalidCode)
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInvalidCode})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, self.response.GetErrorInvalidInput())
 		return
 	}
 	url, err := self.shortenURLService.GetUrlByCode(ctx, keyCode)
 	if err != nil {
 		self.logger.WriteLogError(err.Error())
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorInternalServer})
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, self.response.GetErrorInternalServer())
 		return
 	}
 	if url == self.cfg.StringEmpty {
-		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{self.cfgError.ErrorTitle: self.cfgError.ErrorUrlNotFound})
+		ctx.AbortWithStatusJSON(http.StatusNotFound, self.response.GetErrorUrlNotFound())
 		return
 	}
 	ctx.Redirect(http.StatusMovedPermanently, url)

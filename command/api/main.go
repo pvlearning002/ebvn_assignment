@@ -25,6 +25,7 @@ func main() {
 	logger := utils.NewLoggerUtils()
 	stringUtils := utils.NewStringUtils(*cfg, *cfgError, logger)
 	redisUtils := utils.NewRedisClientUtils(*cfg, *cfgRedis, *cfgError)
+	response := utils.NewResponseUtils(*cfgError)
 
 	if cfg.InstanceID == cfg.StringEmpty {
 		cfg.InstanceID = uuid.New().String()
@@ -32,7 +33,7 @@ func main() {
 
 	logger.SetLogLevel(cfg.LogLevel)
 
-	engine := api.NewEngine(cfg, cfgStatus, cfgError, cfgPaths, cfgHealthCheck, cfgParameter, &stringUtils, &redisUtils, &logger)
+	engine := api.NewEngine(cfg, cfgStatus, cfgError, cfgPaths, cfgHealthCheck, cfgParameter, &stringUtils, &redisUtils, &response, &logger)
 	if err := engine.Start(); err != nil {
 		panic(err)
 	}

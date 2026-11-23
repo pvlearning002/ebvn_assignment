@@ -8,11 +8,16 @@ import (
 )
 
 type ResponseMessage struct {
+	Title   string `json:"error_title"`
 	Message string `json:"message"`
 	Details any    `json:"details,omitempty"`
 }
 
 type ResponseUtils interface {
+	GetInputFieldError(err error) ResponseMessage
+	GetErrorInternalServer() ResponseMessage
+	GetErrorInvalidInput() ResponseMessage
+	GetErrorUrlNotFound() ResponseMessage
 }
 
 type responseUtils struct {
@@ -25,18 +30,38 @@ func NewResponseUtils(cfgError config.ConfigError) ResponseUtils {
 	}
 }
 
-func (self *responseUtils) InputFieldError(err error) ResponseMessage {
+func (self *responseUtils) GetInputFieldError(err error) ResponseMessage {
 	if is_ok := errors.As(err, &validator.ValidationErrors{}); !is_ok {
-		return ResponseMessage{
-			Message: self.cfgError.ErrorInternalServer,
-		}
+		return self.GetErrorInvalidInput()
 	}
 	var errs []string
 	for _, err := range err.(validator.ValidationErrors) {
 		errs = append(errs, err.Field()+" is invalid ("+err.Tag()+")")
 	}
 	return ResponseMessage{
+		Title:   self.cfgError.ErrorTitle,
 		Message: self.cfgError.ErrorInvalidInput,
 		Details: errs,
+	}
+}
+
+func (self *responseUtils) GetErrorInternalServer() ResponseMessage {
+	return ResponseMessage{
+		Title:   self.cfgError.ErrorTitle,
+		Message: self.cfgError.ErrorInternalServer,
+	}
+}
+
+func (self *responseUtils) GetErrorInvalidInput() ResponseMessage {
+	return ResponseMessage{
+		Title:   self.cfgError.ErrorTitle,
+		Message: self.cfgError.ErrorInvalidInput,
+	}
+}
+
+func (self *responseUtils) GetErrorUrlNotFound() ResponseMessage {
+	return ResponseMessage{
+		Title:   self.cfgError.ErrorTitle,
+		Message: self.cfgError.ErrorUrlNotFound,
 	}
 }

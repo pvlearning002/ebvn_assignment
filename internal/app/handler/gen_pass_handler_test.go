@@ -28,8 +28,8 @@ func TestNewGenPass(t *testing.T) {
 	got := NewGenPass(
 		new(genPassHandlerServiceMock),
 		config.Config{},
-		config.ConfigError{},
 		utils.NewLoggerUtils(),
+		utils.NewResponseUtils(config.ConfigError{}),
 	)
 	require.NotNil(t, got)
 	assert.IsType(t, &genPassHandler{}, got)
@@ -42,8 +42,8 @@ func TestGenPassHandler_GeneratePassword_Success(t *testing.T) {
 	handler := NewGenPass(
 		serviceMock,
 		config.Config{PasswordTitle: "password"},
-		config.ConfigError{},
 		utils.NewLoggerUtils(),
+		utils.NewResponseUtils(config.ConfigError{}),
 	)
 	recorder := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(recorder)
@@ -64,8 +64,11 @@ func TestGenPassHandler_GeneratePassword_ServiceError(t *testing.T) {
 	handler := NewGenPass(
 		serviceMock,
 		config.Config{},
-		config.ConfigError{ErrorTitle: "OK", ErrorInternalServer: "internal server error"},
 		utils.NewLoggerUtils(),
+		utils.NewResponseUtils(config.ConfigError{
+			ErrorTitle:          "Error",
+			ErrorInternalServer: "internal server error",
+		}),
 	)
 	recorder := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(recorder)
@@ -74,6 +77,6 @@ func TestGenPassHandler_GeneratePassword_ServiceError(t *testing.T) {
 	handler.GeneratePassword(ctx)
 
 	assert.Equal(t, http.StatusInternalServerError, recorder.Code)
-	assert.JSONEq(t, `{"OK":"internal server error"}`, recorder.Body.String())
+	assert.JSONEq(t, `{"error_title":"Error","message":"internal server error"}`, recorder.Body.String())
 	serviceMock.AssertExpectations(t)
 }

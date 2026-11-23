@@ -72,6 +72,12 @@ func newShortenHandlerForTest(svc *shortenHandlerServiceMock, logger *shortenHan
 			ErrorInvalidCode:    "Invalid code",
 			ErrorUrlNotFound:    "URL not found",
 		},
+		utils.NewResponseUtils(config.ConfigError{
+			ErrorTitle:          "Error",
+			ErrorInvalidInput:   "Invalid input",
+			ErrorInternalServer: "Internal Server Error",
+			ErrorUrlNotFound:    "URL not found",
+		}),
 		config.ConfigParameter{Code: "code"},
 		logger,
 	)
@@ -105,7 +111,7 @@ func TestShortenURLHandler_CreateShortenLink(t *testing.T) {
 			name:           "invalid JSON",
 			body:           `{"url":`,
 			wantStatus:     http.StatusBadRequest,
-			wantBody:       `{"Error":"Invalid input"}`,
+			wantBody:       `{"error_title":"Error","message":"Invalid input"}`,
 			wantLogMessage: "invalid request",
 		},
 		{
@@ -113,7 +119,7 @@ func TestShortenURLHandler_CreateShortenLink(t *testing.T) {
 			body:           `{"expiration_time":500,"url":"https://example.com"}`,
 			serviceError:   errors.New("store failed"),
 			wantStatus:     http.StatusInternalServerError,
-			wantBody:       `{"Error":"Internal Server Error"}`,
+			wantBody:       `{"error_title":"Error","message":"Internal Server Error"}`,
 			wantLogMessage: "store failed",
 		},
 	}
@@ -159,9 +165,9 @@ func TestShortenURLHandler_RedirectToOriginalURL(t *testing.T) {
 		wantLogMessage string
 	}{
 		{name: "redirect", code: "abc123", url: "https://example.com", wantStatus: http.StatusMovedPermanently, wantLocation: "https://example.com"},
-		{name: "missing code", code: "", wantStatus: http.StatusBadRequest, wantBody: `{"Error":"Invalid code"}`, wantLogMessage: "Invalid code"},
-		{name: "URL not found", code: "missing", url: "", wantStatus: http.StatusNotFound, wantBody: `{"Error":"URL not found"}`},
-		{name: "service error", code: "abc123", serviceError: errors.New("lookup failed"), wantStatus: http.StatusInternalServerError, wantBody: `{"Error":"Internal Server Error"}`, wantLogMessage: "lookup failed"},
+		{name: "missing code", code: "", wantStatus: http.StatusBadRequest, wantBody: `{"error_title":"Error","message":"Invalid input"}`, wantLogMessage: "Invalid code"},
+		{name: "URL not found", code: "missing", url: "", wantStatus: http.StatusNotFound, wantBody: `{"error_title":"Error","message":"URL not found"}`},
+		{name: "service error", code: "abc123", serviceError: errors.New("lookup failed"), wantStatus: http.StatusInternalServerError, wantBody: `{"error_title":"Error","message":"Internal Server Error"}`, wantLogMessage: "lookup failed"},
 	}
 
 	for _, tc := range tests {

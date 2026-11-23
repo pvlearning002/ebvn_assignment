@@ -31,6 +31,7 @@ type engine struct {
 	cfgParameter   *config.ConfigParameter
 	stringUtils    *utils.StringUtils
 	redisUtils     *utils.RedisClientUtils
+	response       *utils.ResponseUtils
 	logger         *utils.LoggerUtils
 }
 
@@ -42,6 +43,7 @@ func NewEngine(cfg *config.Config,
 	cfgParameter *config.ConfigParameter,
 	stringUtils *utils.StringUtils,
 	redisUtils *utils.RedisClientUtils,
+	response *utils.ResponseUtils,
 	logger *utils.LoggerUtils) Engine {
 	app := &engine{
 		app:            gin.Default(),
@@ -53,6 +55,7 @@ func NewEngine(cfg *config.Config,
 		cfgParameter:   cfgParameter,
 		stringUtils:    stringUtils,
 		redisUtils:     redisUtils,
+		response:       response,
 		logger:         logger,
 	}
 	app.initRoutes()
@@ -74,7 +77,7 @@ func (self *engine) initRoutes() {
 	// Initialize gen pass service
 	genPassService := service.NewGenPass(*self.cfg, *self.logger, *self.stringUtils)
 	// Initialize gen pass handler
-	genPassHandler := handler.NewGenPass(genPassService, *self.cfg, *self.cfgError, *self.logger)
+	genPassHandler := handler.NewGenPass(genPassService, *self.cfg, *self.logger, *self.response)
 	// Register gen pass route
 	self.app.GET(self.cfgPaths.PathSwagger, ginSwagger.WrapHandler(swaggerFiles.Handler))
 	self.app.GET(self.cfgPaths.PathGetGenPass, genPassHandler.GeneratePassword)
@@ -82,7 +85,7 @@ func (self *engine) initRoutes() {
 	// Initialize health check service
 	healthCheckService := service.NewHealthCheck(*self.cfg, *self.cfgStatus, *self.cfgHealthCheck, *self.redisUtils)
 	// Initialize health check handler
-	healthCheckHandler := handler.NewHealthCheck(healthCheckService, *self.cfg, *self.cfgError, *self.logger)
+	healthCheckHandler := handler.NewHealthCheck(healthCheckService, *self.cfg, *self.response, *self.logger)
 	// Register health check route
 	self.app.GET(self.cfgPaths.PathGetHealthCheck, healthCheckHandler.GenerateHealthCheck)
 
@@ -90,7 +93,7 @@ func (self *engine) initRoutes() {
 	// Initialize shorten URL service
 	shortenURLService := service.NewShortenURLService(urlStorage, *self.cfg, *self.logger, *self.stringUtils)
 	// Initialize shorten URL handler
-	shortenURLHandler := handler.NewShortenURLHandler(shortenURLService, *self.cfg, *self.cfgError, *self.cfgParameter, *self.logger)
+	shortenURLHandler := handler.NewShortenURLHandler(shortenURLService, *self.cfg, *self.cfgError, *self.response, *self.cfgParameter, *self.logger)
 	// Register shorten URL route
 	self.app.POST(self.cfgPaths.PathPostShortenURL, shortenURLHandler.CreateShortenLink)
 	self.app.GET(self.cfgPaths.PathGetURL, shortenURLHandler.RedirectToOriginalURL)
