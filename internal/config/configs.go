@@ -19,6 +19,8 @@ type Config struct {
 	RedisExpiredTime      int    `default:"3600" envconfig:"REDIS_EXPIRED_TIME"`
 	LogLevel              string `default:"info" envconfig:"LOG_LEVEL"`
 	InstanceID            string `default:"" envconfig:"INSTANCE_ID"`
+	Hostname              string `default:"localhost:8080" envconfig:"APP_HOSTNAME"`
+	BasePath              string `default:"localhost:8080" envconfig:"APP_BASEPATH"`
 }
 
 func NewConfig() (*Config, error) {

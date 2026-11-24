@@ -25,6 +25,6 @@ test:
 	fi
 
 docker-build:
-	docker build -t ebvn_test:latest .
+	docker build -t ebvn_test:dev .
 
 swag-run: swag run

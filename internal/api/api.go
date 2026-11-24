@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	// cSpell:ignore pvlearning ebvn
+	"github.com/pvlearning002/ebvn_assignment/docs"
 	_ "github.com/pvlearning002/ebvn_assignment/docs"
 	"github.com/pvlearning002/ebvn_assignment/internal/app/handler"
 	repository "github.com/pvlearning002/ebvn_assignment/internal/app/repository"
@@ -74,27 +75,30 @@ func (self *engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // initRoutes initializes the routes for the API engine.
 func (self *engine) initRoutes() {
+	docs.SwaggerInfo.BasePath = self.cfg.BasePath
 	// Initialize gen pass service
 	genPassService := service.NewGenPass(*self.cfg, *self.logger, *self.stringUtils)
 	// Initialize gen pass handler
 	genPassHandler := handler.NewGenPass(genPassService, *self.cfg, *self.logger, *self.response)
-	// Register gen pass route
-	self.app.GET(self.cfgPaths.PathSwagger, ginSwagger.WrapHandler(swaggerFiles.Handler))
-	self.app.GET(self.cfgPaths.PathGetGenPass, genPassHandler.GeneratePassword)
 
 	// Initialize health check service
 	healthCheckService := service.NewHealthCheck(*self.cfg, *self.cfgStatus, *self.cfgHealthCheck, *self.redisUtils)
 	// Initialize health check handler
 	healthCheckHandler := handler.NewHealthCheck(healthCheckService, *self.cfg, *self.response, *self.logger)
-	// Register health check route
-	self.app.GET(self.cfgPaths.PathGetHealthCheck, healthCheckHandler.GenerateHealthCheck)
 
 	urlStorage := repository.NewURLStorage(*self.redisUtils)
 	// Initialize shorten URL service
 	shortenURLService := service.NewShortenURLService(urlStorage, *self.cfg, *self.logger, *self.stringUtils)
 	// Initialize shorten URL handler
 	shortenURLHandler := handler.NewShortenURLHandler(shortenURLService, *self.cfg, *self.cfgError, *self.response, *self.cfgParameter, *self.logger)
+	// Register Swagger route
+	self.app.GET(self.cfgPaths.PathSwagger, ginSwagger.WrapHandler(swaggerFiles.Handler))
+	// Register gen pass route
+	self.app.GET(self.cfgPaths.PathGetGenPass, genPassHandler.GeneratePassword)
+	// Register health check route
+	self.app.GET(self.cfgPaths.PathGetHealthCheck, healthCheckHandler.GenerateHealthCheck)
 	// Register shorten URL route
 	self.app.POST(self.cfgPaths.PathPostShortenURL, shortenURLHandler.CreateShortenLink)
+	// Register redirect route
 	self.app.GET(self.cfgPaths.PathGetURL, shortenURLHandler.RedirectToOriginalURL)
 }

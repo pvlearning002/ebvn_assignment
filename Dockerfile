@@ -17,8 +17,10 @@ FROM alpine:3.23.2 AS runtime
 
 WORKDIR /app
 
-COPY --from=build /opt/app/main ./main
+# COPY --from=build /opt/app/main ./main
+COPY --from=build /opt/app/bookmark_sevice /app/bookmark_sevice
+COPY --from=build /opt/app/docs /app/docs
 
 EXPOSE 8080
 
-CMD ["./main"]
+CMD ["/app/bookmark_sevice"]
